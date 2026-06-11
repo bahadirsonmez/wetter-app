@@ -18,7 +18,10 @@
 		E53566ED2FD6B93400A40AFB /* Exceptions for "wetterApp" folder in "wetterApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Extensions/.gitkeep,
 				Info.plist,
+				Utils/.gitkeep,
+				Views/.gitkeep,
 			);
 			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
 		};
