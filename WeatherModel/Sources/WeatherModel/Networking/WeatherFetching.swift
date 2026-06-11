@@ -1,4 +1,4 @@
-public protocol WeatherServiceProvider: Sendable {
+public protocol WeatherFetching: Sendable {
 
     func fetchCurrentWeather(
         latitude: Double,
