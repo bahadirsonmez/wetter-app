@@ -1,6 +1,6 @@
 @testable import WeatherModel
 
-struct WeatherServiceProviderMock: WeatherServiceProvider {
+struct WeatherFetchingMock: WeatherFetching {
 
     func fetchCurrentWeather(
         latitude: Double,
