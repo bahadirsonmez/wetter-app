@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2A5FBA012FD9F00100A40AFB /* WeatherViewModel in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5FBA022FD9F00100A40AFB /* WeatherViewModel */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E53566DB2FD6B93300A40AFB /* wetterApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = wetterApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A5FBA012FD9F00100A40AFB /* WeatherViewModel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = wetterApp;
 			packageProductDependencies = (
+				2A5FBA022FD9F00100A40AFB /* WeatherViewModel */,
 			);
 			productName = wetterApp;
 			productReference = E53566DB2FD6B93300A40AFB /* wetterApp.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = E53566D22FD6B93300A40AFB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E53566DC2FD6B93300A40AFB /* Products */;
 			projectDirPath = "";
@@ -355,6 +364,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = WeatherViewModel;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2A5FBA022FD9F00100A40AFB /* WeatherViewModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */;
+			productName = WeatherViewModel;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E53566D32FD6B93300A40AFB /* Project object */;
 }
