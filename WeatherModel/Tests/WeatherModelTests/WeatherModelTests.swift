@@ -3,6 +3,12 @@ import XCTest
 
 final class WeatherModelTests: XCTestCase {
 
+    func testNetworkErrorCasesAreDistinct() {
+        XCTAssertNotEqual(NetworkError.invalidURL, .invalidResponse)
+        XCTAssertNotEqual(NetworkError.invalidResponse, .decodingFailed)
+        XCTAssertNotEqual(NetworkError.decodingFailed, .unauthorized)
+    }
+
     func testCurrentWeatherDecoding() throws {
         let weather = try decode(CurrentWeather.self, from: currentWeatherJSON)
 
