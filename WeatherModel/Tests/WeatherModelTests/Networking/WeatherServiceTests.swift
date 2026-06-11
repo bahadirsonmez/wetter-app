@@ -46,7 +46,7 @@ final class WeatherServiceTests: XCTestCase {
         await assertFetchThrows(.unauthorized)
     }
 
-    func testFetchCurrentWeatherThrowsInvalidResponseForUnsuccessfulResponse() async {
+    func testFetchCurrentWeatherThrowsInvalidResponseForServerError() async {
         stubResponse(statusCode: 500)
 
         await assertFetchThrows(.invalidResponse)
