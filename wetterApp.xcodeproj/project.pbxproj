@@ -12,6 +12,7 @@
 
 /* Begin PBXFileReference section */
 		E53566DB2FD6B93300A40AFB /* wetterApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = wetterApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A5FBA112FD9F00100A40AFB /* wetterAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = wetterAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -28,6 +29,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		2A5FBA122FD9F00100A40AFB /* wetterAppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = wetterAppTests;
+			sourceTree = "<group>";
+		};
 		E53566DD2FD6B93300A40AFB /* wetterApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -39,6 +45,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2A5FBA132FD9F00100A40AFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53566D82FD6B93300A40AFB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -54,6 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				E53566DD2FD6B93300A40AFB /* wetterApp */,
+				2A5FBA122FD9F00100A40AFB /* wetterAppTests */,
 				E53566DC2FD6B93300A40AFB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				E53566DB2FD6B93300A40AFB /* wetterApp.app */,
+				2A5FBA112FD9F00100A40AFB /* wetterAppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,6 +84,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2A5FBA102FD9F00100A40AFB /* wetterAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2A5FBA192FD9F00100A40AFB /* Build configuration list for PBXNativeTarget "wetterAppTests" */;
+			buildPhases = (
+				2A5FBA142FD9F00100A40AFB /* Sources */,
+				2A5FBA132FD9F00100A40AFB /* Frameworks */,
+				2A5FBA152FD9F00100A40AFB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2A5FBA172FD9F00100A40AFB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2A5FBA122FD9F00100A40AFB /* wetterAppTests */,
+			);
+			name = wetterAppTests;
+			packageProductDependencies = (
+			);
+			productName = wetterAppTests;
+			productReference = 2A5FBA112FD9F00100A40AFB /* wetterAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		E53566DA2FD6B93300A40AFB /* wetterApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E53566EE2FD6B93400A40AFB /* Build configuration list for PBXNativeTarget "wetterApp" */;
@@ -102,6 +140,10 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					2A5FBA102FD9F00100A40AFB = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = E53566DA2FD6B93300A40AFB;
+					};
 					E53566DA2FD6B93300A40AFB = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -125,11 +167,19 @@
 			projectRoot = "";
 			targets = (
 				E53566DA2FD6B93300A40AFB /* wetterApp */,
+				2A5FBA102FD9F00100A40AFB /* wetterAppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2A5FBA152FD9F00100A40AFB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53566D92FD6B93300A40AFB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +190,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2A5FBA142FD9F00100A40AFB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53566D72FD6B93300A40AFB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -150,6 +207,52 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		2A5FBA182FD9F00100A40AFB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KLJ32GT9C2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bahadirovski.wetterAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/wetterApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/wetterApp";
+			};
+			name = Debug;
+		};
+		2A5FBA1A2FD9F00100A40AFB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KLJ32GT9C2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bahadirovski.wetterAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/wetterApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/wetterApp";
+			};
+			name = Release;
+		};
 		E53566EF2FD6B93400A40AFB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -348,6 +451,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2A5FBA192FD9F00100A40AFB /* Build configuration list for PBXNativeTarget "wetterAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2A5FBA182FD9F00100A40AFB /* Debug */,
+				2A5FBA1A2FD9F00100A40AFB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E53566D62FD6B93300A40AFB /* Build configuration list for PBXProject "wetterApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -367,6 +479,24 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin PBXContainerItemProxy section */
+		2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E53566D32FD6B93300A40AFB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E53566DA2FD6B93300A40AFB;
+			remoteInfo = wetterApp;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		2A5FBA172FD9F00100A40AFB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
+			targetProxy = 2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCLocalSwiftPackageReference section */
 		2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */ = {
