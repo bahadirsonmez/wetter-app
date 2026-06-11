@@ -1,10 +1,10 @@
 import XCTest
 @testable import WeatherModel
 
-final class WeatherServiceProviderTests: XCTestCase {
+final class WeatherFetchingTests: XCTestCase {
 
     func testProviderCanBeMocked() async {
-        let service: any WeatherServiceProvider = WeatherServiceProviderMock()
+        let service: any WeatherFetching = WeatherFetchingMock()
 
         do {
             _ = try await service.fetchCurrentWeather(
