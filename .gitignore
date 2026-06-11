@@ -62,4 +62,5 @@ timeline.xctimeline
 playground.xcworkspace
 
 # Swift Package Manager
-# Package.resolved
+.build/
+Package.resolved
