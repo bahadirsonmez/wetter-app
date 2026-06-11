@@ -1,0 +1,43 @@
+import Foundation
+@testable import WeatherModel
+
+final class URLProtocolStub: URLProtocol {
+
+    static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+    static var lastRequest: URLRequest?
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        Self.lastRequest = request
+
+        guard let requestHandler = Self.requestHandler else {
+            client?.urlProtocol(
+                self,
+                didFailWithError: NetworkError.invalidResponse
+            )
+            return
+        }
+
+        do {
+            let (response, data) = try requestHandler(request)
+            client?.urlProtocol(
+                self,
+                didReceive: response,
+                cacheStoragePolicy: .notAllowed
+            )
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+}
