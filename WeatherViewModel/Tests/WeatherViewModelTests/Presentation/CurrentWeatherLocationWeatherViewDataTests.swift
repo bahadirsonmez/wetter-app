@@ -37,29 +37,29 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
         XCTAssertNil(viewData.countryCode)
     }
 
-    func testUsesFallbackForEmptyLocationName() throws {
+    func testPreservesEmptyLocationName() throws {
         let viewData = LocationWeatherViewData(
             weather: try makeCurrentWeather(locationName: "")
         )
 
-        XCTAssertEqual(viewData.locationName, "Unknown location")
+        XCTAssertEqual(viewData.locationName, "")
     }
 
-    func testUsesFallbackWhenConditionsAreEmpty() throws {
+    func testUsesNilWhenConditionsAreEmpty() throws {
         let viewData = LocationWeatherViewData(
             weather: try makeCurrentWeather(includesCondition: false)
         )
 
-        XCTAssertEqual(viewData.conditionText, "Unknown")
+        XCTAssertNil(viewData.conditionText)
         XCTAssertNil(viewData.conditionIconName)
     }
 
-    func testUsesFallbackForEmptyConditionDescription() throws {
+    func testPreservesEmptyConditionDescription() throws {
         let viewData = LocationWeatherViewData(
             weather: try makeCurrentWeather(conditionDescription: "")
         )
 
-        XCTAssertEqual(viewData.conditionText, "Unknown")
+        XCTAssertEqual(viewData.conditionText, "")
         XCTAssertEqual(viewData.conditionIconName, "10d")
     }
 
