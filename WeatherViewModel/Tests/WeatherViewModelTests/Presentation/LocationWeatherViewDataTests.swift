@@ -7,8 +7,8 @@ final class LocationWeatherViewDataTests: XCTestCase {
         let viewData = LocationWeatherViewData(
             locationName: "Berlin",
             countryCode: "DE",
-            temperatureText: "24°",
-            feelsLikeText: "Feels like 25°",
+            temperatureText: "24°C",
+            feelsLikeText: "Feels like 25°C",
             humidityText: "64%",
             conditionText: "Moderate rain",
             conditionIconName: "10d"
@@ -16,10 +16,26 @@ final class LocationWeatherViewDataTests: XCTestCase {
 
         XCTAssertEqual(viewData.locationName, "Berlin")
         XCTAssertEqual(viewData.countryCode, "DE")
-        XCTAssertEqual(viewData.temperatureText, "24°")
-        XCTAssertEqual(viewData.feelsLikeText, "Feels like 25°")
+        XCTAssertEqual(viewData.temperatureText, "24°C")
+        XCTAssertEqual(viewData.feelsLikeText, "Feels like 25°C")
         XCTAssertEqual(viewData.humidityText, "64%")
         XCTAssertEqual(viewData.conditionText, "Moderate rain")
         XCTAssertEqual(viewData.conditionIconName, "10d")
+    }
+
+    func testInitializationStoresMissingOptionalValues() {
+        let viewData = LocationWeatherViewData(
+            locationName: "Berlin",
+            countryCode: nil,
+            temperatureText: "24°C",
+            feelsLikeText: "Feels like 25°C",
+            humidityText: "64%",
+            conditionText: nil,
+            conditionIconName: nil
+        )
+
+        XCTAssertNil(viewData.countryCode)
+        XCTAssertNil(viewData.conditionText)
+        XCTAssertNil(viewData.conditionIconName)
     }
 }
