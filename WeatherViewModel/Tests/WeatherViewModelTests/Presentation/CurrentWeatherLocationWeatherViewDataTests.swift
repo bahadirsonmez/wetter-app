@@ -3,9 +3,9 @@ import XCTest
 
 final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
 
-    func testMapsCurrentWeatherIntoViewData() throws {
+    func testMapsCurrentWeatherIntoViewData() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather()
+            weather: WeatherViewModelFixtures.berlinWeather
         )
 
         XCTAssertEqual(viewData.locationName, "Berlin")
@@ -17,55 +17,53 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
         XCTAssertEqual(viewData.conditionIconName, "10d")
     }
 
-    func testRoundsNegativeTemperatureDeterministically() throws {
+    func testRoundsNegativeTemperatureDeterministically() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(
-                temperature: -2.6,
-                feelsLikeTemperature: -2.6
-            )
+            weather: WeatherViewModelFixtures.negativeTemperatureWeather
         )
 
         XCTAssertEqual(viewData.temperatureText, "-3°C")
         XCTAssertEqual(viewData.feelsLikeText, "Feels like -3°C")
     }
 
-    func testPreservesMissingCountryCode() throws {
+    func testPreservesMissingCountryCode() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(countryCode: nil)
+            weather: WeatherViewModelFixtures.weatherWithoutCountryCode
         )
 
         XCTAssertNil(viewData.countryCode)
     }
 
-    func testPreservesEmptyLocationName() throws {
+    func testPreservesEmptyLocationName() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(locationName: "")
+            weather: WeatherViewModelFixtures.weatherWithEmptyLocationName
         )
 
         XCTAssertEqual(viewData.locationName, "")
     }
 
-    func testUsesNilWhenConditionsAreEmpty() throws {
+    func testUsesNilWhenConditionsAreEmpty() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(includesCondition: false)
+            weather: WeatherViewModelFixtures.weatherWithoutCondition
         )
 
         XCTAssertNil(viewData.conditionText)
         XCTAssertNil(viewData.conditionIconName)
     }
 
-    func testPreservesEmptyConditionDescription() throws {
+    func testPreservesEmptyConditionDescription() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(conditionDescription: "")
+            weather:
+                WeatherViewModelFixtures.weatherWithEmptyConditionDescription
         )
 
         XCTAssertEqual(viewData.conditionText, "")
         XCTAssertEqual(viewData.conditionIconName, "10d")
     }
 
-    func testUsesInjectedFormatter() throws {
+    func testUsesInjectedFormatter() {
         let viewData = LocationWeatherViewData(
-            weather: try makeCurrentWeather(),
+            weather: WeatherViewModelFixtures.berlinWeather,
             formatter: StubFormatter()
         )
 
