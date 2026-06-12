@@ -116,13 +116,23 @@ final class LocationWeatherViewModelTests: XCTestCase {
             ignoresCancellation: true
         )
         var receivedStates: [LocationWeatherViewState] = []
-        viewModel.onStateChange = { receivedStates.append($0) }
+        let loadedStateExpectation = expectation(
+            description: "Cancelled request does not publish loaded state."
+        )
+        loadedStateExpectation.isInverted = true
+        viewModel.onStateChange = { state in
+            receivedStates.append(state)
+            if case .loaded = state {
+                loadedStateExpectation.fulfill()
+            }
+        }
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
         await waitUntilRequestCount(1, service: service)
         service.result = .failure(NetworkError.unauthorized)
         service.shouldSuspend = false
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilRequestCount(2, service: service)
         await waitUntilFailed(viewModel)
         service.completeRequest(
             1,
@@ -130,7 +140,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
                 WeatherViewModelFixtures.weather(locationName: "Old")
             )
         )
-        await Task.yield()
+        await fulfillment(of: [loadedStateExpectation], timeout: 0.2)
 
         XCTAssertFalse(receivedStates.contains { state in
             if case .loaded = state {
@@ -149,12 +159,24 @@ final class LocationWeatherViewModelTests: XCTestCase {
             shouldSuspend: true,
             ignoresCancellation: true
         )
+        let staleStateExpectation = expectation(
+            description: "Stale request does not control final state."
+        )
+        staleStateExpectation.isInverted = true
+        viewModel.onStateChange = { state in
+            guard case let .loaded(viewData) = state,
+                  viewData.locationName == "Old" else {
+                return
+            }
+            staleStateExpectation.fulfill()
+        }
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
         await waitUntilRequestCount(1, service: service)
         service.result = .success(WeatherViewModelFixtures.berlinWeather)
         service.shouldSuspend = false
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilRequestCount(2, service: service)
         await waitUntilLoaded(viewModel)
         service.completeRequest(
             1,
@@ -162,7 +184,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
                 WeatherViewModelFixtures.weather(locationName: "Old")
             )
         )
-        await Task.yield()
+        await fulfillment(of: [staleStateExpectation], timeout: 0.2)
 
         guard case let .loaded(viewData) = viewModel.state else {
             return XCTFail("Expected loaded state.")
@@ -259,7 +281,10 @@ final class LocationWeatherViewModelTests: XCTestCase {
         condition: () -> Bool,
         failureMessage: String
     ) async {
-        for _ in 0..<100 {
+        let clock = ContinuousClock()
+        let deadline = clock.now + .seconds(1)
+
+        while clock.now < deadline {
             if condition() {
                 return
             }
