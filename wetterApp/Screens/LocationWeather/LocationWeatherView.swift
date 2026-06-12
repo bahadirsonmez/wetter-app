@@ -111,5 +111,3 @@ final class LocationWeatherView: UIView {
         ] + placeholderHeightConstraints)
     }
 }
-
-final class LocationWeatherSummaryView: UIView {}
