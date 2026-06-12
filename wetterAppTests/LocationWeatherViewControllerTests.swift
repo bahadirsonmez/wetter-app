@@ -1,3 +1,4 @@
+import CoreLocation
 import XCTest
 import WeatherViewModel
 @testable import wetterApp
@@ -17,7 +18,15 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     }
 }
 
-private final class CurrentLocationProviderSpy: CurrentLocationProviding {}
+@MainActor
+private final class CurrentLocationProviderSpy: CurrentLocationProviding {
+
+    var onLocationResult: (
+        (Result<CLLocationCoordinate2D, CurrentLocationError>) -> Void
+    )?
+
+    func requestCurrentLocation() {}
+}
 
 @MainActor
 private final class LocationWeatherViewModelSpy:
