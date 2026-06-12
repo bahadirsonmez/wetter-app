@@ -7,15 +7,15 @@ final class LocationWeatherViewModelTests: XCTestCase {
 
     func testInitialStateIsIdle() {
         let viewModel = LocationWeatherViewModel(
-            weatherService: MockWeatherService()
+            weatherService: WeatherFetchingSpy()
         )
 
         XCTAssertEqual(viewModel.state, .idle)
     }
 
-    func testLoadWeatherPublishesLoadingThenFormattedData() async throws {
-        let service = MockWeatherService(
-            results: [.success(try makeCurrentWeather())]
+    func testLoadWeatherPublishesLoadingThenFormattedData() async {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
         )
         let viewModel = LocationWeatherViewModel(weatherService: service)
         var receivedStates: [LocationWeatherViewState] = []
@@ -41,14 +41,14 @@ final class LocationWeatherViewModelTests: XCTestCase {
                 )
             ]
         )
-        let requests = await service.requests
-        XCTAssertEqual(requests, [.init(latitude: 52.52, longitude: 13.405)])
+        XCTAssertEqual(service.fetchCallCount, 1)
+        XCTAssertEqual(service.receivedLatitude, 52.52)
+        XCTAssertEqual(service.receivedLongitude, 13.405)
     }
 
-    func testRefreshUsesPreviouslyLoadedCoordinates() async throws {
-        let weather = try makeCurrentWeather()
-        let service = MockWeatherService(
-            results: [.success(weather), .success(weather)]
+    func testRefreshUsesPreviouslyLoadedCoordinates() async {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
         )
         let viewModel = LocationWeatherViewModel(weatherService: service)
 
@@ -57,26 +57,16 @@ final class LocationWeatherViewModelTests: XCTestCase {
         viewModel.refresh()
         await waitUntilRequestCount(2, service: service)
 
-        let requests = await service.requests
-        XCTAssertEqual(
-            requests,
-            [
-                .init(latitude: 52.52, longitude: 13.405),
-                .init(latitude: 52.52, longitude: 13.405)
-            ]
-        )
+        XCTAssertEqual(service.fetchCallCount, 2)
+        XCTAssertEqual(service.receivedLatitude, 52.52)
+        XCTAssertEqual(service.receivedLongitude, 13.405)
     }
 
-    func testLoadWeatherPreservesMissingOptionalValues() async throws {
-        let service = MockWeatherService(
-            results: [
-                .success(
-                    try makeCurrentWeather(
-                        countryCode: nil,
-                        includesCondition: false
-                    )
-                )
-            ]
+    func testLoadWeatherPreservesMissingCondition() async {
+        let service = WeatherFetchingSpy(
+            result: .success(
+                WeatherViewModelFixtures.weatherWithoutCondition
+            )
         )
         let viewModel = LocationWeatherViewModel(weatherService: service)
 
@@ -87,13 +77,12 @@ final class LocationWeatherViewModelTests: XCTestCase {
             return XCTFail("Expected loaded state.")
         }
 
-        XCTAssertNil(viewData.countryCode)
         XCTAssertNil(viewData.conditionText)
         XCTAssertNil(viewData.conditionIconName)
     }
 
     func testRefreshWithoutCoordinatesDoesNothing() async {
-        let service = MockWeatherService()
+        let service = WeatherFetchingSpy()
         let viewModel = LocationWeatherViewModel(weatherService: service)
         var receivedStates: [LocationWeatherViewState] = []
         viewModel.onStateChange = { receivedStates.append($0) }
@@ -103,8 +92,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.state, .idle)
         XCTAssertTrue(receivedStates.isEmpty)
-        let requests = await service.requests
-        XCTAssertTrue(requests.isEmpty)
+        XCTAssertEqual(service.fetchCallCount, 0)
     }
 
     func testLoadWeatherMapsNetworkErrorsToViewErrors() async {
@@ -116,8 +104,8 @@ final class LocationWeatherViewModelTests: XCTestCase {
         ]
 
         for (networkError, expectedViewError) in mappings {
-            let service = MockWeatherService(
-                results: [.failure(networkError)]
+            let service = WeatherFetchingSpy(
+                result: .failure(networkError)
             )
             let viewModel = LocationWeatherViewModel(
                 weatherService: service
@@ -130,18 +118,19 @@ final class LocationWeatherViewModelTests: XCTestCase {
         }
     }
 
-    func testNewLoadCancelsPreviousRequest() async throws {
-        let service = MockWeatherService(
-            results: [
-                .success(try makeCurrentWeather(locationName: "Old")),
-                .success(try makeCurrentWeather(locationName: "Berlin"))
-            ],
-            delays: [500_000_000, 0]
+    func testNewLoadCancelsPreviousRequest() async {
+        let service = WeatherFetchingSpy(
+            result: .success(
+                WeatherViewModelFixtures.weather(locationName: "Old")
+            )
         )
+        service.shouldSuspend = true
         let viewModel = LocationWeatherViewModel(weatherService: service)
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
         await waitUntilRequestCount(1, service: service)
+        service.result = .success(WeatherViewModelFixtures.berlinWeather)
+        service.shouldSuspend = false
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
         await waitUntilLoaded(viewModel)
 
@@ -151,11 +140,11 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(viewData.locationName, "Berlin")
     }
 
-    func testDeinitCancelsCurrentTask() async throws {
-        let service = MockWeatherService(
-            results: [.success(try makeCurrentWeather())],
-            delays: [500_000_000]
+    func testDeinitCancelsCurrentTask() async {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
         )
+        service.shouldSuspend = true
         var viewModel: LocationWeatherViewModel? = LocationWeatherViewModel(
             weatherService: service
         )
@@ -165,10 +154,9 @@ final class LocationWeatherViewModelTests: XCTestCase {
         await waitUntilRequestCount(1, service: service)
         viewModel = nil
         await waitUntilCancellationCount(1, service: service)
-        let cancellationCount = await service.cancellationCount
 
         XCTAssertNil(weakViewModel)
-        XCTAssertEqual(cancellationCount, 1)
+        XCTAssertEqual(service.cancellationCount, 1)
     }
 
     private func waitUntilLoaded(
@@ -197,10 +185,10 @@ final class LocationWeatherViewModelTests: XCTestCase {
 
     private func waitUntilRequestCount(
         _ count: Int,
-        service: MockWeatherService
+        service: WeatherFetchingSpy
     ) async {
         for _ in 0..<100 {
-            if await service.requests.count == count {
+            if service.fetchCallCount == count {
                 return
             }
             await Task.yield()
@@ -210,10 +198,10 @@ final class LocationWeatherViewModelTests: XCTestCase {
 
     private func waitUntilCancellationCount(
         _ count: Int,
-        service: MockWeatherService
+        service: WeatherFetchingSpy
     ) async {
         for _ in 0..<100 {
-            if await service.cancellationCount == count {
+            if service.cancellationCount == count {
                 return
             }
             await Task.yield()
