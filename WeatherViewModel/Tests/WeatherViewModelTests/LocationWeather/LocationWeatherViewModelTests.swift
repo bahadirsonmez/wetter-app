@@ -112,7 +112,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
             (.unauthorized, .unauthorized),
             (.invalidResponse, .unavailable),
             (.decodingFailed, .invalidData),
-            (.invalidURL, .unknown)
+            (.invalidURL, .unavailable)
         ]
 
         for (networkError, expectedViewError) in mappings {
