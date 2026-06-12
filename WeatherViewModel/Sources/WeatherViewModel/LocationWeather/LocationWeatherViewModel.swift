@@ -71,7 +71,14 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
                     return
                 }
 
-                updateState(.loaded(makeViewData(from: weather)))
+                updateState(
+                    .loaded(
+                        LocationWeatherViewData(
+                            weather: weather,
+                            formatter: formatter
+                        )
+                    )
+                )
             } catch is CancellationError {
                 return
             } catch let error as NetworkError {
@@ -95,33 +102,7 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         onStateChange?(newState)
     }
 
-    // MARK: - Mapping Helpers
-
-    private func makeViewData(
-        from weather: CurrentWeather
-    ) -> LocationWeatherViewData {
-        let condition = weather.conditions.first
-        let temperature = formatter.temperature(
-            weather.temperature.temperature
-        )
-        let feelsLikeTemperature = formatter.temperature(
-            weather.temperature.feelsLike
-        )
-
-        return LocationWeatherViewData(
-            locationName: weather.locationName,
-            countryCode: weather.sun.countryCode,
-            temperatureText: temperature,
-            feelsLikeText: "Feels like \(feelsLikeTemperature)",
-            humidityText: formatter.percentage(
-                weather.temperature.humidity
-            ),
-            conditionText: condition.map {
-                formatter.capitalizedFirstLetter($0.description)
-            },
-            conditionIconName: condition?.icon
-        )
-    }
+    // MARK: - Error Mapping
 
     private func makeViewError(
         from error: NetworkError
