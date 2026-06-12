@@ -6,19 +6,15 @@ import WeatherModel
 final class LocationWeatherViewModelTests: XCTestCase {
 
     func testInitialStateIsIdle() {
-        let viewModel = LocationWeatherViewModel(
-            weatherService: WeatherFetchingSpy()
-        )
+        let (viewModel, _) = makeSUT()
 
         XCTAssertEqual(viewModel.state, .idle)
     }
 
     func testLoadWeatherSetsLoadingState() {
-        let service = WeatherFetchingSpy(
-            result: .success(WeatherViewModelFixtures.berlinWeather)
+        let (viewModel, _) = makeSUT(
+            shouldSuspend: true
         )
-        service.shouldSuspend = true
-        let viewModel = LocationWeatherViewModel(weatherService: service)
 
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
 
@@ -26,10 +22,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testLoadWeatherCallsServiceWithProvidedCoordinates() async {
-        let service = WeatherFetchingSpy(
-            result: .success(WeatherViewModelFixtures.berlinWeather)
-        )
-        let viewModel = LocationWeatherViewModel(weatherService: service)
+        let (viewModel, service) = makeSUT()
 
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
         await waitUntilRequestCount(1, service: service)
@@ -40,10 +33,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testLoadWeatherSuccessSetsLoadedState() async {
-        let service = WeatherFetchingSpy(
-            result: .success(WeatherViewModelFixtures.berlinWeather)
-        )
-        let viewModel = LocationWeatherViewModel(weatherService: service)
+        let (viewModel, _) = makeSUT()
         let expectedViewData = LocationWeatherViewData(
             weather: WeatherViewModelFixtures.berlinWeather
         )
@@ -61,10 +51,9 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testLoadWeatherFailureSetsFailedState() async {
-        let service = WeatherFetchingSpy(
+        let (viewModel, _) = makeSUT(
             result: .failure(NetworkError.unauthorized)
         )
-        let viewModel = LocationWeatherViewModel(weatherService: service)
         var receivedStates: [LocationWeatherViewState] = []
         viewModel.onStateChange = { receivedStates.append($0) }
 
@@ -79,10 +68,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testRefreshUsesLastCoordinates() async {
-        let service = WeatherFetchingSpy(
-            result: .success(WeatherViewModelFixtures.berlinWeather)
-        )
-        let viewModel = LocationWeatherViewModel(weatherService: service)
+        let (viewModel, service) = makeSUT()
 
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
         await waitUntilLoaded(viewModel)
@@ -95,8 +81,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testRefreshWithoutPreviousCoordinatesDoesNotCallService() async {
-        let service = WeatherFetchingSpy()
-        let viewModel = LocationWeatherViewModel(weatherService: service)
+        let (viewModel, service) = makeSUT()
         var receivedStates: [LocationWeatherViewState] = []
         viewModel.onStateChange = { receivedStates.append($0) }
 
@@ -109,11 +94,9 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testLoadWeatherWhenCalledAgainCancelsPreviousRequest() async {
-        let service = WeatherFetchingSpy(
-            result: .success(WeatherViewModelFixtures.berlinWeather)
+        let (viewModel, service) = makeSUT(
+            shouldSuspend: true
         )
-        service.shouldSuspend = true
-        let viewModel = LocationWeatherViewModel(weatherService: service)
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
         await waitUntilRequestCount(1, service: service)
@@ -125,14 +108,13 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testCancelledRequestDoesNotPublishLoadedState() async {
-        let service = WeatherFetchingSpy(
+        let (viewModel, service) = makeSUT(
             result: .success(
                 WeatherViewModelFixtures.weather(locationName: "Old")
-            )
+            ),
+            shouldSuspend: true,
+            ignoresCancellation: true
         )
-        service.shouldSuspend = true
-        service.ignoresCancellation = true
-        let viewModel = LocationWeatherViewModel(weatherService: service)
         var receivedStates: [LocationWeatherViewState] = []
         viewModel.onStateChange = { receivedStates.append($0) }
 
@@ -160,14 +142,13 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     func testLatestRequestControlsFinalState() async {
-        let service = WeatherFetchingSpy(
+        let (viewModel, service) = makeSUT(
             result: .success(
                 WeatherViewModelFixtures.weather(locationName: "Old")
-            )
+            ),
+            shouldSuspend: true,
+            ignoresCancellation: true
         )
-        service.shouldSuspend = true
-        service.ignoresCancellation = true
-        let viewModel = LocationWeatherViewModel(weatherService: service)
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
         await waitUntilRequestCount(1, service: service)
@@ -209,53 +190,81 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(service.cancellationCount, 1)
     }
 
+    private func makeSUT(
+        result: Result<CurrentWeather, Error> = .success(
+            WeatherViewModelFixtures.berlinWeather
+        ),
+        shouldSuspend: Bool = false,
+        ignoresCancellation: Bool = false
+    ) -> (LocationWeatherViewModel, WeatherFetchingSpy) {
+        let service = WeatherFetchingSpy(result: result)
+        service.shouldSuspend = shouldSuspend
+        service.ignoresCancellation = ignoresCancellation
+
+        return (
+            LocationWeatherViewModel(weatherService: service),
+            service
+        )
+    }
+
     private func waitUntilLoaded(
         _ viewModel: LocationWeatherViewModel
     ) async {
-        for _ in 0..<100 {
-            if case .loaded = viewModel.state {
-                return
-            }
-            await Task.yield()
-        }
-        XCTFail("Expected loaded state.")
+        await waitUntil(
+            condition: {
+                if case .loaded = viewModel.state {
+                    return true
+                }
+                return false
+            },
+            failureMessage: "Expected loaded state."
+        )
     }
 
     private func waitUntilFailed(
         _ viewModel: LocationWeatherViewModel
     ) async {
-        for _ in 0..<100 {
-            if case .failed = viewModel.state {
-                return
-            }
-            await Task.yield()
-        }
-        XCTFail("Expected failed state.")
+        await waitUntil(
+            condition: {
+                if case .failed = viewModel.state {
+                    return true
+                }
+                return false
+            },
+            failureMessage: "Expected failed state."
+        )
     }
 
     private func waitUntilRequestCount(
         _ count: Int,
         service: WeatherFetchingSpy
     ) async {
-        for _ in 0..<100 {
-            if service.fetchCallCount == count {
-                return
-            }
-            await Task.yield()
-        }
-        XCTFail("Expected \(count) requests.")
+        await waitUntil(
+            condition: { service.fetchCallCount == count },
+            failureMessage: "Expected \(count) requests."
+        )
     }
 
     private func waitUntilCancellationCount(
         _ count: Int,
         service: WeatherFetchingSpy
     ) async {
+        await waitUntil(
+            condition: { service.cancellationCount == count },
+            failureMessage: "Expected \(count) cancellations."
+        )
+    }
+
+    private func waitUntil(
+        condition: () -> Bool,
+        failureMessage: String
+    ) async {
         for _ in 0..<100 {
-            if service.cancellationCount == count {
+            if condition() {
                 return
             }
             await Task.yield()
         }
-        XCTFail("Expected \(count) cancellations.")
+        XCTFail(failureMessage)
     }
 }
