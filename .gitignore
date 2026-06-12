@@ -64,3 +64,6 @@ playground.xcworkspace
 # Swift Package Manager
 .build/
 Package.resolved
+
+# Local configuration
+Secrets.xcconfig
