@@ -70,4 +70,11 @@ final class LocationWeatherViewTests: XCTestCase {
             XCTAssertEqual(constraint?.priority, .defaultLow)
         }
     }
+
+    func testFeedbackViewsAreInitiallyHidden() {
+        let view = LocationWeatherView()
+
+        XCTAssertTrue(view.loadingView.isHidden)
+        XCTAssertTrue(view.statusView.isHidden)
+    }
 }
