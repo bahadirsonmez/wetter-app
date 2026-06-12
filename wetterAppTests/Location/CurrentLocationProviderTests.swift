@@ -11,19 +11,6 @@ final class CurrentLocationProviderTests: XCTestCase {
         XCTAssertTrue(manager.delegate === provider)
     }
 
-    func testRequestWhenServicesAreDisabledReturnsServicesDisabled() {
-        let (provider, manager) = makeSUT(
-            locationServicesEnabled: false
-        )
-
-        let result = captureResult(from: provider) {
-            provider.requestCurrentLocation()
-        }
-
-        XCTAssertEqual(result?.failure, .servicesDisabled)
-        XCTAssertEqual(manager.requestLocationCallCount, 0)
-    }
-
     func testRequestWhenAuthorizationIsNotDeterminedRequestsPermission() {
         let (provider, manager) = makeSUT(
             authorizationStatus: .notDetermined
@@ -117,7 +104,36 @@ final class CurrentLocationProviderTests: XCTestCase {
 
         let result = captureResult(from: provider) {
             provider.requestCurrentLocation()
-            provider.handleLocationFailure()
+            provider.handleLocationFailure(
+                CLError(.locationUnknown)
+            )
+        }
+
+        XCTAssertEqual(result?.failure, .locationUnavailable)
+    }
+
+    func testDeniedLocationFailureWhenAuthorizedReturnsServicesDisabled() {
+        let (provider, _) = makeSUT(
+            authorizationStatus: .authorizedWhenInUse
+        )
+
+        let result = captureResult(from: provider) {
+            provider.requestCurrentLocation()
+            provider.handleLocationFailure(CLError(.denied))
+        }
+
+        XCTAssertEqual(result?.failure, .servicesDisabled)
+    }
+
+    func testDeniedLocationFailureWhenUnauthorizedReturnsUnavailable() {
+        let (provider, manager) = makeSUT(
+            authorizationStatus: .authorizedWhenInUse
+        )
+
+        let result = captureResult(from: provider) {
+            provider.requestCurrentLocation()
+            manager.authorizationStatus = .denied
+            provider.handleLocationFailure(CLError(.denied))
         }
 
         XCTAssertEqual(result?.failure, .locationUnavailable)
@@ -139,12 +155,10 @@ final class CurrentLocationProviderTests: XCTestCase {
     }
 
     private func makeSUT(
-        authorizationStatus: CLAuthorizationStatus = .notDetermined,
-        locationServicesEnabled: Bool = true
+        authorizationStatus: CLAuthorizationStatus = .notDetermined
     ) -> (CurrentLocationProvider, LocationManagerSpy) {
         let manager = LocationManagerSpy(
-            authorizationStatus: authorizationStatus,
-            locationServicesEnabled: locationServicesEnabled
+            authorizationStatus: authorizationStatus
         )
         return (
             CurrentLocationProvider(locationManager: manager),
@@ -168,16 +182,11 @@ private final class LocationManagerSpy: LocationManaging {
 
     weak var delegate: CLLocationManagerDelegate?
     var authorizationStatus: CLAuthorizationStatus
-    let locationServicesEnabled: Bool
     private(set) var requestAuthorizationCallCount = 0
     private(set) var requestLocationCallCount = 0
 
-    init(
-        authorizationStatus: CLAuthorizationStatus,
-        locationServicesEnabled: Bool
-    ) {
+    init(authorizationStatus: CLAuthorizationStatus) {
         self.authorizationStatus = authorizationStatus
-        self.locationServicesEnabled = locationServicesEnabled
     }
 
     func requestWhenInUseAuthorization() {
