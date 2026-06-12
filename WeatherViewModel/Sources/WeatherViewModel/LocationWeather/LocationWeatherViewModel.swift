@@ -13,8 +13,8 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
     private let weatherService: any WeatherFetching
     private let formatter: any LocationWeatherFormatting
-    private var coordinates: StoredCoordinates?
-    private var loadTask: Task<Void, Never>?
+    private var currentTask: Task<Void, Never>?
+    private var lastCoordinates: WeatherCoordinates?
 
     // MARK: - Initialization
 
@@ -26,10 +26,14 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         self.formatter = formatter
     }
 
+    deinit {
+        currentTask?.cancel()
+    }
+
     // MARK: - Public Methods
 
     public func loadWeather(latitude: Double, longitude: Double) {
-        coordinates = StoredCoordinates(
+        lastCoordinates = WeatherCoordinates(
             latitude: latitude,
             longitude: longitude
         )
@@ -37,34 +41,33 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
     }
 
     public func refresh() {
-        guard let coordinates else {
+        guard let lastCoordinates else {
             return
         }
 
         fetchWeather(
-            latitude: coordinates.latitude,
-            longitude: coordinates.longitude
+            latitude: lastCoordinates.latitude,
+            longitude: lastCoordinates.longitude
         )
     }
 
     // MARK: - Private Methods
 
+    // Capture only the service during the request so the task does not retain
+    // the ViewModel and prevent deinit from cancelling the active task.
     private func fetchWeather(latitude: Double, longitude: Double) {
-        loadTask?.cancel()
+        currentTask?.cancel()
         updateState(.loading)
 
-        loadTask = Task { [weak self] in
-            guard let self else {
-                return
-            }
-
+        let service = weatherService
+        currentTask = Task { [weak self] in
             do {
-                let weather = try await weatherService.fetchCurrentWeather(
+                let weather = try await service.fetchCurrentWeather(
                     latitude: latitude,
                     longitude: longitude
                 )
 
-                guard !Task.isCancelled else {
+                guard !Task.isCancelled, let self else {
                     return
                 }
 
@@ -72,13 +75,13 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
             } catch is CancellationError {
                 return
             } catch let error as NetworkError {
-                guard !Task.isCancelled else {
+                guard !Task.isCancelled, let self else {
                     return
                 }
 
                 updateState(.failed(makeViewError(from: error)))
             } catch {
-                guard !Task.isCancelled else {
+                guard !Task.isCancelled, let self else {
                     return
                 }
 
@@ -87,9 +90,9 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         }
     }
 
-    private func updateState(_ state: LocationWeatherViewState) {
-        self.state = state
-        onStateChange?(state)
+    private func updateState(_ newState: LocationWeatherViewState) {
+        state = newState
+        onStateChange?(newState)
     }
 
     // MARK: - Mapping Helpers
@@ -134,11 +137,4 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
             .unknown
         }
     }
-}
-
-// MARK: - Private Types
-
-private struct StoredCoordinates {
-    let latitude: Double
-    let longitude: Double
 }
