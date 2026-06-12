@@ -151,6 +151,26 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(viewData.locationName, "Berlin")
     }
 
+    func testDeinitCancelsCurrentTask() async throws {
+        let service = MockWeatherService(
+            results: [.success(try makeCurrentWeather())],
+            delays: [500_000_000]
+        )
+        var viewModel: LocationWeatherViewModel? = LocationWeatherViewModel(
+            weatherService: service
+        )
+        weak let weakViewModel = viewModel
+
+        viewModel?.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilRequestCount(1, service: service)
+        viewModel = nil
+        await waitUntilCancellationCount(1, service: service)
+        let cancellationCount = await service.cancellationCount
+
+        XCTAssertNil(weakViewModel)
+        XCTAssertEqual(cancellationCount, 1)
+    }
+
     private func waitUntilLoaded(
         _ viewModel: LocationWeatherViewModel
     ) async {
@@ -186,5 +206,18 @@ final class LocationWeatherViewModelTests: XCTestCase {
             await Task.yield()
         }
         XCTFail("Expected \(count) requests.")
+    }
+
+    private func waitUntilCancellationCount(
+        _ count: Int,
+        service: MockWeatherService
+    ) async {
+        for _ in 0..<100 {
+            if await service.cancellationCount == count {
+                return
+            }
+            await Task.yield()
+        }
+        XCTFail("Expected \(count) cancellations.")
     }
 }

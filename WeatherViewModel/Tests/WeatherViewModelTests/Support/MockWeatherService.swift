@@ -9,6 +9,7 @@ actor MockWeatherService: WeatherFetching {
     }
 
     private(set) var requests: [Request] = []
+    private(set) var cancellationCount = 0
     private var results: [Result<CurrentWeather, NetworkError>]
     private var delays: [UInt64]
 
@@ -35,7 +36,12 @@ actor MockWeatherService: WeatherFetching {
         let result = results.removeFirst()
 
         if !delays.isEmpty {
-            try await Task.sleep(nanoseconds: delays.removeFirst())
+            do {
+                try await Task.sleep(nanoseconds: delays.removeFirst())
+            } catch is CancellationError {
+                cancellationCount += 1
+                throw CancellationError()
+            }
         }
 
         return try result.get()
