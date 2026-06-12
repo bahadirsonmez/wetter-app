@@ -9,6 +9,8 @@ final class LocationWeatherView: UIView {
     let summaryView = LocationWeatherSummaryView()
     let forecastContainerView = UIView()
     let tilesContainerView = UIView()
+    let loadingView = LocationWeatherLoadingView()
+    let statusView = LocationWeatherStatusView()
 
     private let contentView = UIView()
 
@@ -36,7 +38,9 @@ final class LocationWeatherView: UIView {
             contentView,
             summaryView,
             forecastContainerView,
-            tilesContainerView
+            tilesContainerView,
+            loadingView,
+            statusView
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -46,6 +50,11 @@ final class LocationWeatherView: UIView {
         contentView.addSubview(summaryView)
         contentView.addSubview(forecastContainerView)
         contentView.addSubview(tilesContainerView)
+        addSubview(loadingView)
+        addSubview(statusView)
+
+        loadingView.isHidden = true
+        statusView.isHidden = true
 
         let placeholderHeightConstraints = [
             summaryView.heightAnchor.constraint(equalToConstant: 0),
@@ -107,7 +116,21 @@ final class LocationWeatherView: UIView {
             ),
             tilesContainerView.bottomAnchor.constraint(
                 equalTo: contentView.bottomAnchor
-            )
+            ),
+
+            loadingView.topAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.topAnchor
+            ),
+            loadingView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            loadingView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            loadingView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            statusView.topAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.topAnchor
+            ),
+            statusView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            statusView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            statusView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ] + placeholderHeightConstraints)
     }
 }
