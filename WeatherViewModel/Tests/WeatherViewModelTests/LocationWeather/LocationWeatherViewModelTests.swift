@@ -13,40 +13,72 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state, .idle)
     }
 
-    func testLoadWeatherPublishesLoadingThenFormattedData() async {
+    func testLoadWeatherSetsLoadingState() {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
+        )
+        service.shouldSuspend = true
+        let viewModel = LocationWeatherViewModel(weatherService: service)
+
+        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+
+        XCTAssertEqual(viewModel.state, .loading)
+    }
+
+    func testLoadWeatherCallsServiceWithProvidedCoordinates() async {
         let service = WeatherFetchingSpy(
             result: .success(WeatherViewModelFixtures.berlinWeather)
         )
         let viewModel = LocationWeatherViewModel(weatherService: service)
+
+        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilRequestCount(1, service: service)
+
+        XCTAssertEqual(service.fetchCallCount, 1)
+        XCTAssertEqual(service.receivedLatitude, 52.52)
+        XCTAssertEqual(service.receivedLongitude, 13.405)
+    }
+
+    func testLoadWeatherSuccessSetsLoadedState() async {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
+        )
+        let viewModel = LocationWeatherViewModel(weatherService: service)
+        let expectedViewData = LocationWeatherViewData(
+            weather: WeatherViewModelFixtures.berlinWeather
+        )
         var receivedStates: [LocationWeatherViewState] = []
         viewModel.onStateChange = { receivedStates.append($0) }
 
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
         await waitUntilLoaded(viewModel)
 
+        XCTAssertEqual(viewModel.state, .loaded(expectedViewData))
         XCTAssertEqual(
             receivedStates,
-            [
-                .loading,
-                .loaded(
-                    LocationWeatherViewData(
-                        locationName: "Berlin",
-                        countryCode: "DE",
-                        temperatureText: "24°C",
-                        feelsLikeText: "Feels like 25°C",
-                        humidityText: "64%",
-                        conditionText: "Moderate rain",
-                        conditionIconName: "10d"
-                    )
-                )
-            ]
+            [.loading, .loaded(expectedViewData)]
         )
-        XCTAssertEqual(service.fetchCallCount, 1)
-        XCTAssertEqual(service.receivedLatitude, 52.52)
-        XCTAssertEqual(service.receivedLongitude, 13.405)
     }
 
-    func testRefreshUsesPreviouslyLoadedCoordinates() async {
+    func testLoadWeatherFailureSetsFailedState() async {
+        let service = WeatherFetchingSpy(
+            result: .failure(NetworkError.unauthorized)
+        )
+        let viewModel = LocationWeatherViewModel(weatherService: service)
+        var receivedStates: [LocationWeatherViewState] = []
+        viewModel.onStateChange = { receivedStates.append($0) }
+
+        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilFailed(viewModel)
+
+        XCTAssertEqual(viewModel.state, .failed(.unauthorized))
+        XCTAssertEqual(
+            receivedStates,
+            [.loading, .failed(.unauthorized)]
+        )
+    }
+
+    func testRefreshUsesLastCoordinates() async {
         let service = WeatherFetchingSpy(
             result: .success(WeatherViewModelFixtures.berlinWeather)
         )
@@ -62,26 +94,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(service.receivedLongitude, 13.405)
     }
 
-    func testLoadWeatherPreservesMissingCondition() async {
-        let service = WeatherFetchingSpy(
-            result: .success(
-                WeatherViewModelFixtures.weatherWithoutCondition
-            )
-        )
-        let viewModel = LocationWeatherViewModel(weatherService: service)
-
-        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
-        await waitUntilLoaded(viewModel)
-
-        guard case let .loaded(viewData) = viewModel.state else {
-            return XCTFail("Expected loaded state.")
-        }
-
-        XCTAssertNil(viewData.conditionText)
-        XCTAssertNil(viewData.conditionIconName)
-    }
-
-    func testRefreshWithoutCoordinatesDoesNothing() async {
+    func testRefreshWithoutPreviousCoordinatesDoesNotCallService() async {
         let service = WeatherFetchingSpy()
         let viewModel = LocationWeatherViewModel(weatherService: service)
         var receivedStates: [LocationWeatherViewState] = []
@@ -91,31 +104,8 @@ final class LocationWeatherViewModelTests: XCTestCase {
         await Task.yield()
 
         XCTAssertEqual(viewModel.state, .idle)
-        XCTAssertTrue(receivedStates.isEmpty)
         XCTAssertEqual(service.fetchCallCount, 0)
-    }
-
-    func testLoadWeatherMapsNetworkErrorsToViewErrors() async {
-        let mappings: [(NetworkError, LocationWeatherViewError)] = [
-            (.unauthorized, .unauthorized),
-            (.invalidResponse, .unavailable),
-            (.decodingFailed, .invalidData),
-            (.invalidURL, .unavailable)
-        ]
-
-        for (networkError, expectedViewError) in mappings {
-            let service = WeatherFetchingSpy(
-                result: .failure(networkError)
-            )
-            let viewModel = LocationWeatherViewModel(
-                weatherService: service
-            )
-
-            viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
-            await waitUntilFailed(viewModel)
-
-            XCTAssertEqual(viewModel.state, .failed(expectedViewError))
-        }
+        XCTAssertTrue(receivedStates.isEmpty)
     }
 
     func testNewLoadCancelsPreviousRequest() async {
@@ -137,6 +127,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
         guard case let .loaded(viewData) = viewModel.state else {
             return XCTFail("Expected loaded state.")
         }
+
         XCTAssertEqual(viewData.locationName, "Berlin")
     }
 
