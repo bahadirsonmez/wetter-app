@@ -67,7 +67,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
         )
     }
 
-    func testLoadWeatherPreservesMissingOptionalValues() async throws {
+    func testLoadWeatherAppliesMissingValueFallbacks() async throws {
         let service = MockWeatherService(
             results: [
                 .success(
@@ -88,7 +88,7 @@ final class LocationWeatherViewModelTests: XCTestCase {
         }
 
         XCTAssertNil(viewData.countryCode)
-        XCTAssertNil(viewData.conditionText)
+        XCTAssertEqual(viewData.conditionText, "Unknown")
         XCTAssertNil(viewData.conditionIconName)
     }
 

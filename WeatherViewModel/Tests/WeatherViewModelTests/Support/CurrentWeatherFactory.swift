@@ -4,7 +4,12 @@ import WeatherModel
 func makeCurrentWeather(
     locationName: String = "Berlin",
     countryCode: String? = "DE",
-    includesCondition: Bool = true
+    temperature: Double = 24.4,
+    feelsLikeTemperature: Double = 24.6,
+    humidity: Int = 64,
+    includesCondition: Bool = true,
+    conditionDescription: String = "moderate rain",
+    conditionIcon: String = "10d"
 ) throws -> CurrentWeather {
     let countryEntry: String
     if let countryCode {
@@ -18,8 +23,8 @@ func makeCurrentWeather(
             {
               "id": 501,
               "main": "Rain",
-              "description": "moderate rain",
-              "icon": "10d"
+              "description": "\(conditionDescription)",
+              "icon": "\(conditionIcon)"
             }
           ]
           """
@@ -30,12 +35,12 @@ func makeCurrentWeather(
       "coord": { "lon": 13.405, "lat": 52.52 },
       "weather": \(conditions),
       "main": {
-        "temp": 24.4,
-        "feels_like": 24.6,
+        "temp": \(temperature),
+        "feels_like": \(feelsLikeTemperature),
         "temp_min": 23.0,
         "temp_max": 25.0,
         "pressure": 1015,
-        "humidity": 64
+        "humidity": \(humidity)
       },
       "visibility": 10000,
       "wind": { "speed": 2.5, "deg": 180 },
