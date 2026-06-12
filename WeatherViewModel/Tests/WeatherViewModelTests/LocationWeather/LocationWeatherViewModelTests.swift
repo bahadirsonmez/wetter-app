@@ -108,13 +108,65 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertTrue(receivedStates.isEmpty)
     }
 
-    func testNewLoadCancelsPreviousRequest() async {
+    func testLoadWeatherWhenCalledAgainCancelsPreviousRequest() async {
+        let service = WeatherFetchingSpy(
+            result: .success(WeatherViewModelFixtures.berlinWeather)
+        )
+        service.shouldSuspend = true
+        let viewModel = LocationWeatherViewModel(weatherService: service)
+
+        viewModel.loadWeather(latitude: 1, longitude: 1)
+        await waitUntilRequestCount(1, service: service)
+        service.shouldSuspend = false
+        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilCancellationCount(1, service: service)
+
+        XCTAssertEqual(service.cancellationCount, 1)
+    }
+
+    func testCancelledRequestDoesNotPublishLoadedState() async {
         let service = WeatherFetchingSpy(
             result: .success(
                 WeatherViewModelFixtures.weather(locationName: "Old")
             )
         )
         service.shouldSuspend = true
+        service.ignoresCancellation = true
+        let viewModel = LocationWeatherViewModel(weatherService: service)
+        var receivedStates: [LocationWeatherViewState] = []
+        viewModel.onStateChange = { receivedStates.append($0) }
+
+        viewModel.loadWeather(latitude: 1, longitude: 1)
+        await waitUntilRequestCount(1, service: service)
+        service.result = .failure(NetworkError.unauthorized)
+        service.shouldSuspend = false
+        viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
+        await waitUntilFailed(viewModel)
+        service.completeRequest(
+            1,
+            with: .success(
+                WeatherViewModelFixtures.weather(locationName: "Old")
+            )
+        )
+        await Task.yield()
+
+        XCTAssertFalse(receivedStates.contains { state in
+            if case .loaded = state {
+                return true
+            }
+            return false
+        })
+        XCTAssertEqual(viewModel.state, .failed(.unauthorized))
+    }
+
+    func testLatestRequestControlsFinalState() async {
+        let service = WeatherFetchingSpy(
+            result: .success(
+                WeatherViewModelFixtures.weather(locationName: "Old")
+            )
+        )
+        service.shouldSuspend = true
+        service.ignoresCancellation = true
         let viewModel = LocationWeatherViewModel(weatherService: service)
 
         viewModel.loadWeather(latitude: 1, longitude: 1)
@@ -123,6 +175,13 @@ final class LocationWeatherViewModelTests: XCTestCase {
         service.shouldSuspend = false
         viewModel.loadWeather(latitude: 52.52, longitude: 13.405)
         await waitUntilLoaded(viewModel)
+        service.completeRequest(
+            1,
+            with: .success(
+                WeatherViewModelFixtures.weather(locationName: "Old")
+            )
+        )
+        await Task.yield()
 
         guard case let .loaded(viewData) = viewModel.state else {
             return XCTFail("Expected loaded state.")
