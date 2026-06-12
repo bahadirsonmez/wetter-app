@@ -7,8 +7,8 @@ final class LocationWeatherViewStateTests: XCTestCase {
         let viewData = LocationWeatherViewData(
             locationName: "Berlin",
             countryCode: "DE",
-            temperatureText: "24°",
-            feelsLikeText: "Feels like 25°",
+            temperatureText: "24°C",
+            feelsLikeText: "Feels like 25°C",
             humidityText: "64%",
             conditionText: "Moderate rain",
             conditionIconName: "10d"
