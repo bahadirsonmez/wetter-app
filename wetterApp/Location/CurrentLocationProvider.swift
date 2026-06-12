@@ -44,19 +44,24 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
         complete(with: .success(coordinate))
     }
 
-    func handleLocationFailure() {
-        complete(with: .failure(.locationUnavailable))
+    func handleLocationFailure(_ error: Error) {
+        let locationError = error as? CLError
+        let isAuthorized = [
+            CLAuthorizationStatus.authorizedAlways,
+            .authorizedWhenInUse
+        ].contains(locationManager.authorizationStatus)
+
+        if locationError?.code == .denied, isAuthorized {
+            complete(with: .failure(.servicesDisabled))
+        } else {
+            complete(with: .failure(.locationUnavailable))
+        }
     }
 
     // MARK: - Private Methods
 
     private func continuePendingRequest() {
         guard isRequestPending else {
-            return
-        }
-
-        guard locationManager.locationServicesEnabled else {
-            complete(with: .failure(.servicesDisabled))
             return
         }
 
@@ -107,6 +112,6 @@ extension CurrentLocationProvider: CLLocationManagerDelegate {
         _ manager: CLLocationManager,
         didFailWithError error: Error
     ) {
-        handleLocationFailure()
+        handleLocationFailure(error)
     }
 }
