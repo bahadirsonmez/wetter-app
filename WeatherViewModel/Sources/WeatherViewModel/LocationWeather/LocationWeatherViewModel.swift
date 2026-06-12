@@ -81,18 +81,14 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
                 )
             } catch is CancellationError {
                 return
-            } catch let error as NetworkError {
-                guard !Task.isCancelled, let self else {
-                    return
-                }
-
-                updateState(.failed(makeViewError(from: error)))
             } catch {
                 guard !Task.isCancelled, let self else {
                     return
                 }
 
-                updateState(.failed(.unknown))
+                updateState(
+                    .failed(LocationWeatherViewError(error: error))
+                )
             }
         }
     }
@@ -102,20 +98,4 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         onStateChange?(newState)
     }
 
-    // MARK: - Error Mapping
-
-    private func makeViewError(
-        from error: NetworkError
-    ) -> LocationWeatherViewError {
-        switch error {
-        case .unauthorized:
-            .unauthorized
-        case .invalidResponse:
-            .unavailable
-        case .decodingFailed:
-            .invalidData
-        case .invalidURL:
-            .unknown
-        }
-    }
 }
