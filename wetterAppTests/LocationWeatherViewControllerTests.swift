@@ -56,7 +56,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertFalse(context.weatherView.loadingView.isHidden)
         XCTAssertTrue(context.weatherView.scrollView.isHidden)
-        XCTAssertTrue(context.weatherView.statusView.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.isHidden)
     }
 
     func testLoadedStateDisplaysWeatherSummary() {
@@ -66,12 +66,12 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
 
         XCTAssertEqual(
-            context.weatherView.summaryView.locationLabel.text,
+            context.weatherView.summaryContainerView.summaryView.locationLabel.text,
             "Berlin"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
         XCTAssertTrue(context.weatherView.loadingView.isHidden)
-        XCTAssertTrue(context.weatherView.statusView.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.isHidden)
     }
 
     func testLoadedStateDisplaysTemperatureGraph() {
@@ -80,10 +80,10 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
 
-        XCTAssertFalse(context.weatherView.temperatureGraphView.isHidden)
-        XCTAssertTrue(context.weatherView.forecastStatusView.isHidden)
+        XCTAssertFalse(context.weatherView.forecastContainerView.temperatureGraphView.isHidden)
+        XCTAssertTrue(context.weatherView.forecastContainerView.statusView.isHidden)
         XCTAssertEqual(
-            context.weatherView.temperatureGraphView.collectionView
+            context.weatherView.forecastContainerView.temperatureGraphView.collectionView
                 .numberOfSections,
             1
         )
@@ -102,12 +102,12 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            context.weatherView.forecastStatusView.titleLabel.text,
+            context.weatherView.forecastContainerView.statusView.titleLabel.text,
             "Forecast unavailable"
         )
-        XCTAssertFalse(context.weatherView.forecastStatusView.isHidden)
+        XCTAssertFalse(context.weatherView.forecastContainerView.statusView.isHidden)
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
-        XCTAssertTrue(context.weatherView.statusView.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.isHidden)
     }
 
     func testRefreshSuccessUpdatesForecast() {
@@ -144,7 +144,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
             )
         )
 
-        let collectionView = context.weatherView.temperatureGraphView
+        let collectionView = context.weatherView.forecastContainerView.temperatureGraphView
             .collectionView
         let cell = collectionView.dataSource?.collectionView(
             collectionView,
@@ -161,19 +161,21 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.viewModel.send(.failed(.unavailable))
 
         XCTAssertEqual(
-            context.weatherView.statusView.titleLabel.text,
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
             "Weather Unavailable"
         )
         XCTAssertEqual(
-            context.weatherView.statusView.messageLabel.text,
+            context.weatherView.summaryContainerView.statusView.messageLabel.text,
             LocationWeatherViewError.unavailable.message
         )
         XCTAssertEqual(
-            context.weatherView.statusView.actionButton.title(for: .normal),
+            context.weatherView.summaryContainerView.statusView.actionButton.title(for: .normal),
             "Retry"
         )
-        XCTAssertFalse(context.weatherView.statusView.isHidden)
-        XCTAssertTrue(context.weatherView.scrollView.isHidden)
+        XCTAssertFalse(context.weatherView.summaryContainerView.statusView.isHidden)
+        XCTAssertFalse(context.weatherView.scrollView.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.summaryView.isHidden)
+        XCTAssertTrue(context.weatherView.forecastContainerView.isHidden)
     }
 
     func testWeatherRetryActionRefreshesViewModel() {
@@ -181,7 +183,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.viewController.loadViewIfNeeded()
         context.viewModel.send(.failed(.unavailable))
 
-        context.weatherView.statusView.actionButton.sendActions(
+        context.weatherView.summaryContainerView.statusView.actionButton.sendActions(
             for: .touchUpInside
         )
 
@@ -218,7 +220,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.viewModel.send(.loading)
 
         XCTAssertEqual(
-            context.weatherView.summaryView.locationLabel.text,
+            context.weatherView.summaryContainerView.summaryView.locationLabel.text,
             "Berlin"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
@@ -242,7 +244,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertFalse(context.weatherView.refreshControl.isRefreshing)
         XCTAssertEqual(
-            context.weatherView.summaryView.locationLabel.text,
+            context.weatherView.summaryContainerView.summaryView.locationLabel.text,
             "Hamburg"
         )
     }
@@ -265,11 +267,11 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertFalse(context.weatherView.refreshControl.isRefreshing)
         XCTAssertEqual(
-            context.weatherView.summaryView.locationLabel.text,
+            context.weatherView.summaryContainerView.summaryView.locationLabel.text,
             "Berlin"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
-        XCTAssertTrue(context.weatherView.statusView.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.isHidden)
 
         let alert = context.viewController.presentedViewController
             as? UIAlertController
@@ -287,11 +289,11 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.locationProvider.send(.failure(.authorizationDenied))
 
         XCTAssertEqual(
-            context.weatherView.statusView.titleLabel.text,
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
             "Location Permission Required"
         )
         XCTAssertEqual(
-            context.weatherView.statusView.actionButton.title(for: .normal),
+            context.weatherView.summaryContainerView.statusView.actionButton.title(for: .normal),
             "Open Settings"
         )
     }
@@ -303,10 +305,10 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.locationProvider.send(.failure(.authorizationRestricted))
 
         XCTAssertEqual(
-            context.weatherView.statusView.titleLabel.text,
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
             "Location Access Restricted"
         )
-        XCTAssertTrue(context.weatherView.statusView.actionButton.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.actionButton.isHidden)
     }
 
     func testDisabledLocationServicesShowsExplanationWithoutAction() {
@@ -316,10 +318,10 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.locationProvider.send(.failure(.servicesDisabled))
 
         XCTAssertEqual(
-            context.weatherView.statusView.titleLabel.text,
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
             "Location Services Disabled"
         )
-        XCTAssertTrue(context.weatherView.statusView.actionButton.isHidden)
+        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.actionButton.isHidden)
     }
 
     func testUnavailableLocationRetryRequestsLocationAgain() {
@@ -327,7 +329,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         context.viewController.loadViewIfNeeded()
         context.locationProvider.send(.failure(.locationUnavailable))
 
-        context.weatherView.statusView.actionButton.sendActions(
+        context.weatherView.summaryContainerView.statusView.actionButton.sendActions(
             for: .touchUpInside
         )
 

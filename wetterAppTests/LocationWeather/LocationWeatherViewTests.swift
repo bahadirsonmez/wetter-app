@@ -7,7 +7,7 @@ final class LocationWeatherViewTests: XCTestCase {
     func testViewHierarchyContainsSectionsInExpectedOrder() {
         let view = LocationWeatherView()
 
-        guard let contentView = view.summaryView.superview else {
+        guard let contentView = view.summaryContainerView.superview else {
             return XCTFail("Expected scroll view content view.")
         }
 
@@ -15,7 +15,7 @@ final class LocationWeatherViewTests: XCTestCase {
         XCTAssertEqual(
             contentView.subviews,
             [
-                view.summaryView,
+                view.summaryContainerView,
                 view.forecastContainerView,
                 view.tilesContainerView
             ]
@@ -37,7 +37,7 @@ final class LocationWeatherViewTests: XCTestCase {
     func testContentViewWidthMatchesScrollViewFrameLayoutGuide() {
         let view = LocationWeatherView()
 
-        guard let contentView = view.summaryView.superview else {
+        guard let contentView = view.summaryContainerView.superview else {
             return XCTFail("Expected scroll view content view.")
         }
 
@@ -55,7 +55,7 @@ final class LocationWeatherViewTests: XCTestCase {
     func testPlaceholderSectionsUseLowPriorityZeroHeightConstraints() {
         let view = LocationWeatherView()
         let sections = [
-            view.summaryView,
+            view.summaryContainerView,
             view.forecastContainerView,
             view.tilesContainerView
         ]
@@ -75,19 +75,19 @@ final class LocationWeatherViewTests: XCTestCase {
         let view = LocationWeatherView()
 
         XCTAssertTrue(view.loadingView.isHidden)
-        XCTAssertTrue(view.statusView.isHidden)
-        XCTAssertTrue(view.temperatureGraphView.isHidden)
-        XCTAssertTrue(view.forecastStatusView.isHidden)
+        XCTAssertTrue(view.summaryContainerView.statusView.isHidden)
+        XCTAssertTrue(view.forecastContainerView.temperatureGraphView.isHidden)
+        XCTAssertTrue(view.forecastContainerView.statusView.isHidden)
     }
 
     func testForecastContainerContainsGraphAndLocalStatusViews() {
         let view = LocationWeatherView()
 
         XCTAssertTrue(
-            view.temperatureGraphView.superview === view.forecastContainerView
+            view.forecastContainerView.temperatureGraphView.superview === view.forecastContainerView
         )
         XCTAssertTrue(
-            view.forecastStatusView.superview === view.forecastContainerView
+            view.forecastContainerView.statusView.superview === view.forecastContainerView
         )
     }
 }
