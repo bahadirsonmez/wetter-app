@@ -95,4 +95,25 @@ final class TemperatureGraphLayoutGeometryTests: XCTestCase {
         )
         XCTAssertNil(geometry.headerFrame(in: 1))
     }
+
+    func testStickyHeaderUsesVisibleLeftEdge() {
+        let frame = TemperatureGraphLayoutGeometry.stickyHeaderFrame(
+            CGRect(x: 20, y: 10, width: 105, height: 20),
+            nextHeaderFrame: CGRect(x: 145, y: 10, width: 50, height: 20),
+            visibleLeftEdge: 30
+        )
+
+        XCTAssertEqual(frame.minX, 30)
+    }
+
+    func testStickyHeaderStopsBeforeNextHeader() {
+        let frame = TemperatureGraphLayoutGeometry.stickyHeaderFrame(
+            CGRect(x: 20, y: 10, width: 105, height: 20),
+            nextHeaderFrame: CGRect(x: 145, y: 10, width: 50, height: 20),
+            visibleLeftEdge: 80
+        )
+
+        XCTAssertEqual(frame.minX, 40)
+        XCTAssertEqual(frame.maxX, 145)
+    }
 }

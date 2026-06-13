@@ -2,8 +2,7 @@ import UIKit
 
 final class TemperatureGraphLayout: UICollectionViewLayout {
 
-    static let sectionHeaderKind = UICollectionView
-        .elementKindSectionHeader
+    private static let headerZIndex = 1_000
 
     var metrics: TemperatureGraphLayoutMetrics {
         didSet {
@@ -57,11 +56,12 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
                 section: sectionIndex
             )
             let header = UICollectionViewLayoutAttributes(
-                forSupplementaryViewOfKind: Self.sectionHeaderKind,
+                forSupplementaryViewOfKind:
+                    ForecastDayHeaderView.elementKind,
                 with: headerIndexPath
             )
             header.frame = geometry.sections[sectionIndex].headerFrame
-            header.zIndex = 1
+            header.zIndex = Self.headerZIndex
             headerAttributes[headerIndexPath] = header
 
             for itemIndex in geometry.sections[sectionIndex]
@@ -92,7 +92,9 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         let items = itemAttributes.values.filter {
             $0.frame.intersects(rect)
         }
-        let headers = headerAttributes.values.filter {
+        let headers = headerAttributes.keys.compactMap {
+            stickyHeaderAttributes(at: $0)
+        }.filter {
             $0.frame.intersects(rect)
         }
 
@@ -110,12 +112,12 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         ofKind elementKind: String,
         at indexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {
-        guard elementKind == Self.sectionHeaderKind else {
+        guard elementKind == ForecastDayHeaderView.elementKind else {
             return nil
         }
 
         // Each section owns one reusable day header.
-        return headerAttributes[indexPath]
+        return stickyHeaderAttributes(at: indexPath)
     }
 
     override func shouldInvalidateLayout(
@@ -138,5 +140,29 @@ private extension TemperatureGraphLayout {
         itemAttributes.removeAll(keepingCapacity: true)
         headerAttributes.removeAll(keepingCapacity: true)
         contentSize = .zero
+    }
+
+    func stickyHeaderAttributes(
+        at indexPath: IndexPath
+    ) -> UICollectionViewLayoutAttributes? {
+        guard
+            let collectionView,
+            let cachedAttributes = headerAttributes[indexPath],
+            let attributes = cachedAttributes.copy()
+                as? UICollectionViewLayoutAttributes
+        else {
+            return nil
+        }
+
+        let nextIndexPath = IndexPath(
+            item: .zero,
+            section: indexPath.section + 1
+        )
+        attributes.frame = TemperatureGraphLayoutGeometry.stickyHeaderFrame(
+            cachedAttributes.frame,
+            nextHeaderFrame: headerAttributes[nextIndexPath]?.frame,
+            visibleLeftEdge: collectionView.bounds.minX
+        )
+        return attributes
     }
 }
