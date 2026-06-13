@@ -38,7 +38,7 @@ final class ForecastViewDataMapperTests: XCTestCase {
         XCTAssertEqual(viewData.days.count, 2)
         XCTAssertEqual(viewData.days[0].items.count, 1)
         XCTAssertEqual(viewData.days[1].items.count, 2)
-        XCTAssertEqual(viewData.days[1].title, "Saturday, Jun 13")
+        XCTAssertEqual(viewData.days[1].title, "13 June")
     }
 
     func testMapCreatesFormattedItems() throws {
