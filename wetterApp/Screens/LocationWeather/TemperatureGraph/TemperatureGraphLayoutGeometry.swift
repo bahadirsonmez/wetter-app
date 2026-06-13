@@ -98,6 +98,23 @@ struct TemperatureGraphLayoutGeometry {
 
         return sections[section].headerFrame
     }
+
+    static func stickyHeaderFrame(
+        _ headerFrame: CGRect,
+        nextHeaderFrame: CGRect?,
+        visibleLeftEdge: CGFloat
+    ) -> CGRect {
+        let stickyX = max(headerFrame.minX, visibleLeftEdge)
+        let maximumX = nextHeaderFrame.map {
+            $0.minX - headerFrame.width
+        } ?? stickyX
+
+        var frame = headerFrame
+        // Clamp the header to its section start and let the next day push it
+        // left before the two headers can overlap.
+        frame.origin.x = min(stickyX, maximumX)
+        return frame
+    }
 }
 
 // MARK: - Helpers

@@ -31,7 +31,7 @@ final class TemperatureGraphLayoutTests: XCTestCase {
         )
         let header = try XCTUnwrap(
             context.layout.layoutAttributesForSupplementaryView(
-                ofKind: TemperatureGraphLayout.sectionHeaderKind,
+                ofKind: ForecastDayHeaderView.elementKind,
                 at: IndexPath(item: 0, section: 1)
             )
         )
@@ -44,7 +44,7 @@ final class TemperatureGraphLayoutTests: XCTestCase {
             header.frame,
             CGRect(x: 145, y: 10, width: 50, height: 20)
         )
-        XCTAssertEqual(header.zIndex, 1)
+        XCTAssertEqual(header.zIndex, 1_000)
     }
 
     func testCollectionViewContentSizeUsesGeometry() {
@@ -84,6 +84,52 @@ final class TemperatureGraphLayoutTests: XCTestCase {
             )
 
         XCTAssertNil(attributes)
+    }
+
+    func testHeaderSticksToVisibleLeftEdge() throws {
+        let context = makeSUT(sectionItemCounts: [2, 1])
+        context.layout.prepare()
+        context.collectionView.contentOffset.x = 30
+
+        let header = try XCTUnwrap(
+            context.layout.layoutAttributesForSupplementaryView(
+                ofKind: ForecastDayHeaderView.elementKind,
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+
+        XCTAssertEqual(header.frame.minX, 30)
+    }
+
+    func testNextHeaderPushesCurrentHeaderLeft() throws {
+        let context = makeSUT(sectionItemCounts: [2, 1])
+        context.layout.prepare()
+        context.collectionView.contentOffset.x = 80
+
+        let header = try XCTUnwrap(
+            context.layout.layoutAttributesForSupplementaryView(
+                ofKind: ForecastDayHeaderView.elementKind,
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+
+        XCTAssertEqual(header.frame.minX, 40)
+        XCTAssertEqual(header.frame.maxX, 145)
+    }
+
+    func testLastHeaderFollowsVisibleLeftEdge() throws {
+        let context = makeSUT(sectionItemCounts: [2, 2])
+        context.layout.prepare()
+        context.collectionView.contentOffset.x = 160
+
+        let header = try XCTUnwrap(
+            context.layout.layoutAttributesForSupplementaryView(
+                ofKind: ForecastDayHeaderView.elementKind,
+                at: IndexPath(item: 0, section: 1)
+            )
+        )
+
+        XCTAssertEqual(header.frame.minX, 160)
     }
 
     func testBoundsOriginChangeInvalidatesLayout() {
