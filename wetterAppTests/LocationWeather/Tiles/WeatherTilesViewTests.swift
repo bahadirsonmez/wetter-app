@@ -50,7 +50,7 @@ final class WeatherTilesViewTests: XCTestCase {
         )
     }
 
-    func testCompactWidthShowsOnlyFirstFourTiles() {
+    func testConfigureHidesItemsOutsideVisibleLimit() {
         let view = makeView(width: 390)
 
         view.configure(with: makeTiles(count: 8))

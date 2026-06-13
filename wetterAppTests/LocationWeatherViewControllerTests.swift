@@ -369,7 +369,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         )
     }
 
-    func testRefreshFailureKeepsExistingWeatherTiles() {
+    func testRefreshFailurePreservesExistingTiles() {
         let context = makeContext()
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = context.viewController
@@ -395,6 +395,27 @@ final class LocationWeatherViewControllerTests: XCTestCase {
             "23°C"
         )
         XCTAssertFalse(weatherTileViews(in: context)[0].isHidden)
+    }
+
+    func testLocationFailureHidesWeatherTiles() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+
+        context.locationProvider.send(.failure(.authorizationDenied))
+
+        XCTAssertTrue(context.weatherView.tilesContainerView.isHidden)
+        XCTAssertTrue(
+            weatherTileViews(in: context).allSatisfy {
+                $0.titleLabel.text == nil && $0.isHidden
+            }
+        )
     }
 
     func testDeniedLocationShowsOpenSettingsStatus() {
