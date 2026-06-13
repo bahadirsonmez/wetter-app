@@ -37,6 +37,10 @@ enum WeatherViewModelFixtures {
         makeWeather(locationName: locationName)
     }
 
+    static func weather(visibility: Int?) -> CurrentWeather {
+        makeWeather(visibility: visibility)
+    }
+
     static func forecastResponse(
         samples: [(timestamp: Int, temperature: Double, description: String)] = [
             (1_781_355_600, 24.4, "moderate rain")
@@ -104,6 +108,7 @@ enum WeatherViewModelFixtures {
         countryCode: String? = "DE",
         temperature: Double = 24.4,
         feelsLike: Double = 24.6,
+        visibility: Int? = 10_000,
         conditions: [WeatherCondition] = [
             WeatherCondition(
                 id: 501,
@@ -129,7 +134,7 @@ enum WeatherViewModelFixtures {
                 seaLevelPressure: nil,
                 groundLevelPressure: nil
             ),
-            visibility: 10_000,
+            visibility: visibility,
             wind: WindDetails(
                 speed: 2.5,
                 direction: 180,
