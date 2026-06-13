@@ -4,4 +4,9 @@ public protocol WeatherFetching: Sendable {
         latitude: Double,
         longitude: Double
     ) async throws -> CurrentWeather
+
+    func fetchForecast(
+        latitude: Double,
+        longitude: Double
+    ) async throws -> ForecastResponse
 }
