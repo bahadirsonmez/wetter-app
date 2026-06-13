@@ -11,7 +11,12 @@ final class LocationWeatherViewStateTests: XCTestCase {
             feelsLikeText: "Feels like 25°C",
             humidityText: "64%",
             conditionText: "Moderate rain",
-            conditionIconName: "10d"
+            conditionIconName: "10d",
+            hourlyForecast: HourlyForecastViewData(
+                days: [],
+                minimumTemperature: .zero,
+                maximumTemperature: .zero
+            )
         )
 
         XCTAssertEqual(

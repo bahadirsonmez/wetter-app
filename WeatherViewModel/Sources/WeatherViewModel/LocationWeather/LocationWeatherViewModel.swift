@@ -13,6 +13,7 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
     private let weatherService: any WeatherFetching
     private let formatter: any LocationWeatherFormatting
+    private let forecastMapper: ForecastViewDataMapper
     private var currentTask: Task<Void, Never>?
     private var lastCoordinates: WeatherCoordinates?
 
@@ -20,10 +21,12 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
     public init(
         weatherService: any WeatherFetching,
-        formatter: any LocationWeatherFormatting = LocationWeatherFormatter()
+        formatter: any LocationWeatherFormatting = LocationWeatherFormatter(),
+        forecastFormatter: any ForecastFormatting = ForecastFormatter()
     ) {
         self.weatherService = weatherService
         self.formatter = formatter
+        forecastMapper = ForecastViewDataMapper(formatter: forecastFormatter)
     }
 
     deinit {
@@ -62,19 +65,29 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         let service = weatherService
         currentTask = Task { [weak self] in
             do {
-                let weather = try await service.fetchCurrentWeather(
+                async let weatherRequest = service.fetchCurrentWeather(
                     latitude: latitude,
                     longitude: longitude
+                )
+                async let forecastRequest = service.fetchForecast(
+                    latitude: latitude,
+                    longitude: longitude
+                )
+                let (weather, forecast) = try await (
+                    weatherRequest,
+                    forecastRequest
                 )
 
                 guard !Task.isCancelled, let self else {
                     return
                 }
 
+                let hourlyForecast = forecastMapper.map(forecast)
                 updateState(
                     .loaded(
                         LocationWeatherViewData(
                             weather: weather,
+                            hourlyForecast: hourlyForecast,
                             formatter: formatter
                         )
                     )
