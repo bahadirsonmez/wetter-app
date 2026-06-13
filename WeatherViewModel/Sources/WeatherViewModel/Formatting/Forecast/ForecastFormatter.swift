@@ -9,7 +9,7 @@ public struct ForecastFormatter: ForecastFormatting {
         timezoneOffset: Int
     ) -> String {
         dateFormatter(
-            format: "EEEE, MMM d",
+            format: "d MMMM",
             timezoneOffset: timezoneOffset
         ).string(from: date(for: timestamp))
     }

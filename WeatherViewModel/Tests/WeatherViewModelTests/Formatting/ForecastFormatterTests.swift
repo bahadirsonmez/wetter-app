@@ -11,7 +11,7 @@ final class ForecastFormatterTests: XCTestCase {
                 for: 1_781_301_600,
                 timezoneOffset: 7_200
             ),
-            "Saturday, Jun 13"
+            "13 June"
         )
     }
 

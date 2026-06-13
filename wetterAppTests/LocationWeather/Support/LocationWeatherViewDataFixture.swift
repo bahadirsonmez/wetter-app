@@ -48,4 +48,25 @@ enum LocationWeatherViewDataFixture {
         minimumTemperature: .zero,
         maximumTemperature: .zero
     )
+
+    static func tiles(
+        minimumTemperature: String = "23°C"
+    ) -> [WeatherTileViewData] {
+        [
+            WeatherTileViewData(
+                id: .minimumTemperature,
+                title: "Minimum",
+                valueText: minimumTemperature,
+                detailText: nil,
+                symbolName: "thermometer"
+            ),
+            WeatherTileViewData(
+                id: .maximumTemperature,
+                title: "Maximum",
+                valueText: "25°C",
+                detailText: nil,
+                symbolName: "thermometer"
+            )
+        ]
+    }
 }
