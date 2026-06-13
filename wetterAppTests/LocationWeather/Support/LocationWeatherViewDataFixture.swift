@@ -7,7 +7,8 @@ enum LocationWeatherViewDataFixture {
         countryCode: String? = "DE",
         conditionText: String? = "Moderate rain",
         hourlyForecast: HourlyForecastViewData =
-            LocationWeatherViewDataFixture.berlinForecast
+            LocationWeatherViewDataFixture.berlinForecast,
+        tiles: [WeatherTileViewData] = []
     ) -> LocationWeatherViewData {
         LocationWeatherViewData(
             locationName: locationName,
@@ -17,7 +18,8 @@ enum LocationWeatherViewDataFixture {
             humidityText: "64%",
             conditionText: conditionText,
             conditionIconName: "10d",
-            hourlyForecast: hourlyForecast
+            hourlyForecast: hourlyForecast,
+            tiles: tiles
         )
     }
 

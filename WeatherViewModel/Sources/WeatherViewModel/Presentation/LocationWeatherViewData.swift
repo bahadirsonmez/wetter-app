@@ -8,6 +8,7 @@ public struct LocationWeatherViewData: Equatable, Sendable {
     public let conditionText: String?
     public let conditionIconName: String?
     public let hourlyForecast: HourlyForecastViewData
+    public let tiles: [WeatherTileViewData]
 
     public init(
         locationName: String,
@@ -17,7 +18,8 @@ public struct LocationWeatherViewData: Equatable, Sendable {
         humidityText: String,
         conditionText: String?,
         conditionIconName: String?,
-        hourlyForecast: HourlyForecastViewData
+        hourlyForecast: HourlyForecastViewData,
+        tiles: [WeatherTileViewData]
     ) {
         self.locationName = locationName
         self.countryCode = countryCode
@@ -27,5 +29,6 @@ public struct LocationWeatherViewData: Equatable, Sendable {
         self.conditionText = conditionText
         self.conditionIconName = conditionIconName
         self.hourlyForecast = hourlyForecast
+        self.tiles = tiles
     }
 }

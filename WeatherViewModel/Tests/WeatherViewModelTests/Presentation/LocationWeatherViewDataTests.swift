@@ -12,7 +12,8 @@ final class LocationWeatherViewDataTests: XCTestCase {
             humidityText: "64%",
             conditionText: "Moderate rain",
             conditionIconName: "10d",
-            hourlyForecast: emptyForecast
+            hourlyForecast: emptyForecast,
+            tiles: [minimumTemperatureTile]
         )
 
         XCTAssertEqual(viewData.locationName, "Berlin")
@@ -23,6 +24,7 @@ final class LocationWeatherViewDataTests: XCTestCase {
         XCTAssertEqual(viewData.conditionText, "Moderate rain")
         XCTAssertEqual(viewData.conditionIconName, "10d")
         XCTAssertEqual(viewData.hourlyForecast, emptyForecast)
+        XCTAssertEqual(viewData.tiles, [minimumTemperatureTile])
     }
 
     func testInitializationStoresMissingOptionalValues() {
@@ -34,7 +36,8 @@ final class LocationWeatherViewDataTests: XCTestCase {
             humidityText: "64%",
             conditionText: nil,
             conditionIconName: nil,
-            hourlyForecast: emptyForecast
+            hourlyForecast: emptyForecast,
+            tiles: []
         )
 
         XCTAssertNil(viewData.countryCode)
@@ -47,6 +50,16 @@ final class LocationWeatherViewDataTests: XCTestCase {
             days: [],
             minimumTemperature: .zero,
             maximumTemperature: .zero
+        )
+    }
+
+    private var minimumTemperatureTile: WeatherTileViewData {
+        WeatherTileViewData(
+            id: .minimumTemperature,
+            title: "Minimum",
+            valueText: "23°C",
+            detailText: nil,
+            symbolName: "thermometer.low"
         )
     }
 }
