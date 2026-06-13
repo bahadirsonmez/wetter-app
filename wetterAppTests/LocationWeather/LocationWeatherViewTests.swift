@@ -76,5 +76,18 @@ final class LocationWeatherViewTests: XCTestCase {
 
         XCTAssertTrue(view.loadingView.isHidden)
         XCTAssertTrue(view.statusView.isHidden)
+        XCTAssertTrue(view.temperatureGraphView.isHidden)
+        XCTAssertTrue(view.forecastStatusView.isHidden)
+    }
+
+    func testForecastContainerContainsGraphAndLocalStatusViews() {
+        let view = LocationWeatherView()
+
+        XCTAssertTrue(
+            view.temperatureGraphView.superview === view.forecastContainerView
+        )
+        XCTAssertTrue(
+            view.forecastStatusView.superview === view.forecastContainerView
+        )
     }
 }

@@ -39,6 +39,30 @@ final class TemperatureGraphView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override var intrinsicContentSize: CGSize {
+        guard
+            !isHidden,
+            let layout = collectionView.collectionViewLayout
+                as? TemperatureGraphLayout
+        else {
+            return CGSize(
+                width: UIView.noIntrinsicMetric,
+                height: .zero
+            )
+        }
+
+        return CGSize(
+            width: UIView.noIntrinsicMetric,
+            height: layout.metrics.contentHeight
+        )
+    }
+
+    override var isHidden: Bool {
+        didSet {
+            invalidateIntrinsicContentSize()
+        }
+    }
+
     // MARK: - Configuration
 
     func configure(with viewData: HourlyForecastViewData) {
@@ -114,7 +138,7 @@ extension TemperatureGraphView: UICollectionViewDataSource {
         guard let count = viewData?.days.count else {
             return 0
         }
-        
+
         return count
     }
 

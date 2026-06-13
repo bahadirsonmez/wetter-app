@@ -8,6 +8,8 @@ final class LocationWeatherView: UIView {
     let refreshControl = UIRefreshControl()
     let summaryView = LocationWeatherSummaryView()
     let forecastContainerView = UIView()
+    let temperatureGraphView = TemperatureGraphView()
+    let forecastStatusView = LocationWeatherStatusView()
     let tilesContainerView = UIView()
     let loadingView = LocationWeatherLoadingView()
     let statusView = LocationWeatherStatusView()
@@ -38,6 +40,8 @@ final class LocationWeatherView: UIView {
             contentView,
             summaryView,
             forecastContainerView,
+            temperatureGraphView,
+            forecastStatusView,
             tilesContainerView,
             loadingView,
             statusView
@@ -49,12 +53,16 @@ final class LocationWeatherView: UIView {
         scrollView.addSubview(contentView)
         contentView.addSubview(summaryView)
         contentView.addSubview(forecastContainerView)
+        forecastContainerView.addSubview(temperatureGraphView)
+        forecastContainerView.addSubview(forecastStatusView)
         contentView.addSubview(tilesContainerView)
         addSubview(loadingView)
         addSubview(statusView)
 
         loadingView.isHidden = true
         statusView.isHidden = true
+        temperatureGraphView.isHidden = true
+        forecastStatusView.isHidden = true
 
         let placeholderHeightConstraints = [
             summaryView.heightAnchor.constraint(equalToConstant: 0),
@@ -103,6 +111,32 @@ final class LocationWeatherView: UIView {
             ),
             forecastContainerView.trailingAnchor.constraint(
                 equalTo: contentView.trailingAnchor
+            ),
+
+            temperatureGraphView.topAnchor.constraint(
+                equalTo: forecastContainerView.topAnchor
+            ),
+            temperatureGraphView.leadingAnchor.constraint(
+                equalTo: forecastContainerView.leadingAnchor
+            ),
+            temperatureGraphView.trailingAnchor.constraint(
+                equalTo: forecastContainerView.trailingAnchor
+            ),
+            temperatureGraphView.bottomAnchor.constraint(
+                equalTo: forecastContainerView.bottomAnchor
+            ),
+
+            forecastStatusView.topAnchor.constraint(
+                equalTo: forecastContainerView.topAnchor
+            ),
+            forecastStatusView.leadingAnchor.constraint(
+                equalTo: forecastContainerView.leadingAnchor
+            ),
+            forecastStatusView.trailingAnchor.constraint(
+                equalTo: forecastContainerView.trailingAnchor
+            ),
+            forecastStatusView.bottomAnchor.constraint(
+                equalTo: forecastContainerView.bottomAnchor
             ),
 
             tilesContainerView.topAnchor.constraint(
