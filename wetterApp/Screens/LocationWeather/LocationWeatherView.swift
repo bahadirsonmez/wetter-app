@@ -8,7 +8,7 @@ final class LocationWeatherView: UIView {
     let refreshControl = UIRefreshControl()
     let summaryContainerView = LocationWeatherSummaryContainerView()
     let forecastContainerView = LocationWeatherForecastContainerView()
-    let tilesContainerView = UIView()
+    let tilesContainerView = LocationWeatherTilesContainerView()
     let loadingView = LocationWeatherLoadingView()
 
     private let contentView = UIView()
