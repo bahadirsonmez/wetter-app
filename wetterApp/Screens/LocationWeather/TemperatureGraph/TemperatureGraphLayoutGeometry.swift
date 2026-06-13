@@ -65,16 +65,10 @@ struct TemperatureGraphLayoutGeometry {
         // still fills the collection view when the graph is narrower.
         currentX -= metrics.sectionSpacing
         let contentWidth = currentX + metrics.contentInsets.right
-        let contentHeight = metrics.contentInsets.top
-            + metrics.headerHeight
-            + metrics.headerSpacing
-            + metrics.itemSize.height
-            + metrics.contentInsets.bottom
-
         self.sections = sections
         contentSize = CGSize(
             width: max(containerSize.width, contentWidth),
-            height: contentHeight
+            height: metrics.contentHeight
         )
     }
 

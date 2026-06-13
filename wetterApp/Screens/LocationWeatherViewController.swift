@@ -138,6 +138,7 @@ final class LocationWeatherViewController: UIViewController {
         case let .loaded(viewData):
             hasLoadedWeather = true
             contentView.summaryView.configure(with: viewData)
+            renderForecast(viewData.hourlyForecast)
             finishRefreshing()
             showContent()
 
@@ -263,5 +264,30 @@ final class LocationWeatherViewController: UIViewController {
     private func finishRefreshing() {
         isRefreshing = false
         contentView.refreshControl.endRefreshing()
+    }
+    
+    // TODO: - Move it to the configuration function in contentview
+    private func renderForecast(
+        _ viewData: HourlyForecastViewData
+    ) {
+        let hasForecastItems = viewData.days.contains {
+            !$0.items.isEmpty
+        }
+
+        contentView.temperatureGraphView.isHidden = false
+
+        guard hasForecastItems else {
+            contentView.temperatureGraphView.reset()
+            contentView.forecastStatusView.configure(
+                title: "Forecast unavailable",
+                message: "Hourly forecast is currently unavailable.",
+                actionTitle: nil
+            )
+            contentView.forecastStatusView.isHidden = false
+            return
+        }
+
+        contentView.temperatureGraphView.configure(with: viewData)
+        contentView.forecastStatusView.isHidden = true
     }
 }
