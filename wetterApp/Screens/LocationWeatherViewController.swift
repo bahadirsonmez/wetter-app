@@ -139,6 +139,9 @@ final class LocationWeatherViewController: UIViewController {
             hasLoadedWeather = true
             contentView.summaryContainerView.summaryView.configure(with: viewData)
             renderForecast(viewData.hourlyForecast)
+            contentView.tilesContainerView.tilesView.configure(
+                with: viewData.tiles
+            )
             finishRefreshing()
             showContent()
 
@@ -206,6 +209,7 @@ final class LocationWeatherViewController: UIViewController {
     // MARK: - Rendering Helpers
 
     private func showInitialLoading() {
+        contentView.tilesContainerView.tilesView.reset()
         contentView.scrollView.isHidden = true
         contentView.summaryContainerView.statusView.isHidden = true
         contentView.summaryContainerView.statusView.onAction = nil
@@ -244,6 +248,7 @@ final class LocationWeatherViewController: UIViewController {
             message: message,
             actionTitle: actionTitle
         )
+        contentView.tilesContainerView.tilesView.reset()
         contentView.summaryContainerView.statusView.onAction = onAction
         contentView.scrollView.isHidden = false
         contentView.loadingView.isHidden = true

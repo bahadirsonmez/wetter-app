@@ -89,6 +89,25 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         )
     }
 
+    func testLoadedStateDisplaysWeatherTiles() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+        context.weatherView.layoutIfNeeded()
+
+        let tileViews = weatherTileViews(in: context)
+        XCTAssertEqual(tileViews.count, 2)
+        XCTAssertEqual(tileViews[0].titleLabel.text, "Minimum")
+        XCTAssertEqual(tileViews[0].valueLabel.text, "23°C")
+    }
+
     func testLoadedStateWithEmptyForecastDisplaysLocalUnavailableStatus() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
@@ -154,6 +173,34 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertEqual(cell?.temperatureLabel.text, "28°C")
     }
 
+    func testRefreshSuccessUpdatesWeatherTiles() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+        context.weatherView.refreshControl.sendActions(for: .valueChanged)
+
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles(
+                        minimumTemperature: "18°C"
+                    )
+                )
+            )
+        )
+
+        XCTAssertEqual(
+            weatherTileViews(in: context)[0].valueLabel.text,
+            "18°C"
+        )
+    }
+
     func testInitialWeatherFailureShowsRetryStatus() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
@@ -176,6 +223,46 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
         XCTAssertTrue(context.weatherView.summaryContainerView.summaryView.isHidden)
         XCTAssertTrue(context.weatherView.forecastContainerView.isHidden)
+    }
+
+    func testInitialLoadingResetsWeatherTiles() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+
+        context.viewModel.send(.loading)
+
+        XCTAssertTrue(
+            weatherTileViews(in: context).allSatisfy {
+                $0.titleLabel.text == nil && $0.isHidden
+            }
+        )
+    }
+
+    func testInitialFailureResetsWeatherTiles() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+
+        context.viewModel.send(.failed(.unavailable))
+
+        XCTAssertTrue(
+            weatherTileViews(in: context).allSatisfy {
+                $0.titleLabel.text == nil && $0.isHidden
+            }
+        )
     }
 
     func testWeatherRetryActionRefreshesViewModel() {
@@ -282,6 +369,34 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         )
     }
 
+    func testRefreshFailureKeepsExistingWeatherTiles() {
+        let context = makeContext()
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.rootViewController = context.viewController
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+        }
+
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    tiles: LocationWeatherViewDataFixture.tiles()
+                )
+            )
+        )
+        context.weatherView.refreshControl.sendActions(for: .valueChanged)
+
+        context.viewModel.send(.failed(.unavailable))
+
+        XCTAssertEqual(
+            weatherTileViews(in: context)[0].valueLabel.text,
+            "23°C"
+        )
+        XCTAssertFalse(weatherTileViews(in: context)[0].isHidden)
+    }
+
     func testDeniedLocationShowsOpenSettingsStatus() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
@@ -351,6 +466,14 @@ final class LocationWeatherViewControllerTests: XCTestCase {
             viewModel: viewModel,
             locationProvider: locationProvider
         )
+    }
+
+    private func weatherTileViews(
+        in context: TestContext
+    ) -> [WeatherTileView] {
+        context.weatherView.tilesContainerView.tilesView.subviews.compactMap {
+            $0 as? WeatherTileView
+        }
     }
 }
 
