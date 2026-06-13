@@ -14,7 +14,12 @@ enum LocationWeatherViewDataFixture {
             feelsLikeText: "Feels like 25°C",
             humidityText: "64%",
             conditionText: conditionText,
-            conditionIconName: "10d"
+            conditionIconName: "10d",
+            hourlyForecast: HourlyForecastViewData(
+                days: [],
+                minimumTemperature: .zero,
+                maximumTemperature: .zero
+            )
         )
     }
 }

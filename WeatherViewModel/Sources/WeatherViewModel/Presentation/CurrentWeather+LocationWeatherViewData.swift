@@ -2,15 +2,9 @@ import WeatherModel
 
 extension LocationWeatherViewData {
 
-    init(weather: CurrentWeather) {
-        self.init(
-            weather: weather,
-            formatter: LocationWeatherFormatter()
-        )
-    }
-
     init(
         weather: CurrentWeather,
+        hourlyForecast: HourlyForecastViewData,
         formatter: any LocationWeatherFormatting
     ) {
         let condition = weather.conditions.first
@@ -31,5 +25,6 @@ extension LocationWeatherViewData {
             formatter.capitalizedFirstLetter($0.description)
         }
         conditionIconName = condition?.icon
+        self.hourlyForecast = hourlyForecast
     }
 }
