@@ -44,6 +44,33 @@ final class CurrentLocationProviderTests: XCTestCase {
         XCTAssertEqual(manager.requestLocationCallCount, 1)
     }
 
+    func testRequestWhenServicesAreDisabledReturnsServicesDisabled() {
+        let (provider, manager) = makeSUT(
+            authorizationStatus: .authorizedWhenInUse,
+            locationServicesEnabled: false
+        )
+
+        let result = captureResult(from: provider) {
+            provider.requestCurrentLocation()
+        }
+
+        XCTAssertEqual(result?.failure, .servicesDisabled)
+        XCTAssertEqual(manager.requestLocationCallCount, 0)
+    }
+
+    func testDisabledServicesTakePrecedenceOverDeniedAuthorization() {
+        let (provider, _) = makeSUT(
+            authorizationStatus: .denied,
+            locationServicesEnabled: false
+        )
+
+        let result = captureResult(from: provider) {
+            provider.requestCurrentLocation()
+        }
+
+        XCTAssertEqual(result?.failure, .servicesDisabled)
+    }
+
     func testRequestWhenAuthorizationIsDeniedReturnsDenied() {
         let (provider, _) = makeSUT(authorizationStatus: .denied)
 
@@ -155,10 +182,12 @@ final class CurrentLocationProviderTests: XCTestCase {
     }
 
     private func makeSUT(
-        authorizationStatus: CLAuthorizationStatus = .notDetermined
+        authorizationStatus: CLAuthorizationStatus = .notDetermined,
+        locationServicesEnabled: Bool = true
     ) -> (CurrentLocationProvider, LocationManagerSpy) {
         let manager = LocationManagerSpy(
-            authorizationStatus: authorizationStatus
+            authorizationStatus: authorizationStatus,
+            locationServicesEnabled: locationServicesEnabled
         )
         return (
             CurrentLocationProvider(locationManager: manager),
@@ -182,11 +211,17 @@ private final class LocationManagerSpy: LocationManaging {
 
     weak var delegate: CLLocationManagerDelegate?
     var authorizationStatus: CLAuthorizationStatus
+    var locationServicesEnabled: Bool
     private(set) var requestAuthorizationCallCount = 0
     private(set) var requestLocationCallCount = 0
+    private(set) var servicesCheckCallCount = 0
 
-    init(authorizationStatus: CLAuthorizationStatus) {
+    init(
+        authorizationStatus: CLAuthorizationStatus,
+        locationServicesEnabled: Bool
+    ) {
         self.authorizationStatus = authorizationStatus
+        self.locationServicesEnabled = locationServicesEnabled
     }
 
     func requestWhenInUseAuthorization() {
@@ -195,6 +230,13 @@ private final class LocationManagerSpy: LocationManaging {
 
     func requestLocation() {
         requestLocationCallCount += 1
+    }
+
+    func checkLocationServicesEnabled(
+        completion: @escaping @MainActor @Sendable (Bool) -> Void
+    ) {
+        servicesCheckCallCount += 1
+        completion(locationServicesEnabled)
     }
 }
 

@@ -12,6 +12,7 @@ import WeatherViewModel
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    private var hasBecomeActive = false
 
     func scene(
         _ scene: UIScene,
@@ -26,6 +27,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = makeRootViewController()
         window.makeKeyAndVisible()
         self.window = window
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        handleSceneDidBecomeActive()
+    }
+
+    func handleSceneDidBecomeActive() {
+        guard hasBecomeActive else {
+            hasBecomeActive = true
+            return
+        }
+
+        let viewController = window?.rootViewController
+            as? LocationWeatherViewController
+        viewController?.requestCurrentLocationAfterActivation()
     }
 
     private func makeRootViewController() -> UIViewController {

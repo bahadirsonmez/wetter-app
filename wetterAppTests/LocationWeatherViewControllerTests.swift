@@ -22,6 +22,15 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertEqual(context.locationProvider.requestCallCount, 1)
     }
 
+    func testActivationAfterReturningFromSettingsRequestsLocationAgain() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewController.requestCurrentLocationAfterActivation()
+
+        XCTAssertEqual(context.locationProvider.requestCallCount, 2)
+    }
+
     func testLocationSuccessLoadsWeatherForCoordinate() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()

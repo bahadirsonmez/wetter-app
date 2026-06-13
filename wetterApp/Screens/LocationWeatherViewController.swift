@@ -93,6 +93,10 @@ final class LocationWeatherViewController: UIViewController {
         locationProvider.requestCurrentLocation()
     }
 
+    func requestCurrentLocationAfterActivation() {
+        locationProvider.requestCurrentLocation()
+    }
+
     @objc
     private func handleRefresh() {
         guard hasLoadedWeather else {
