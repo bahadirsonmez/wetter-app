@@ -8,7 +8,7 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
     func testConfigureDisplaysViewData() {
         let view = LocationWeatherSummaryView()
 
-        view.configure(with: makeViewData())
+        view.configure(with: LocationWeatherViewDataFixture.berlin())
 
         XCTAssertEqual(view.locationLabel.text, "Berlin")
         XCTAssertEqual(view.countryCodeLabel.text, "DE")
@@ -25,7 +25,7 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
         let view = LocationWeatherSummaryView()
 
         view.configure(
-            with: makeViewData(
+            with: LocationWeatherViewDataFixture.berlin(
                 countryCode: nil,
                 conditionText: nil
             )
@@ -37,7 +37,7 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
 
     func testResetClearsDisplayedValues() {
         let view = LocationWeatherSummaryView()
-        view.configure(with: makeViewData())
+        view.configure(with: LocationWeatherViewDataFixture.berlin())
 
         view.reset()
 
@@ -88,22 +88,5 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
             XCTAssertTrue($0.adjustsFontForContentSizeCategory)
             XCTAssertEqual($0.numberOfLines, 0)
         }
-    }
-
-    // MARK: - Helpers
-
-    private func makeViewData(
-        countryCode: String? = "DE",
-        conditionText: String? = "Moderate rain"
-    ) -> LocationWeatherViewData {
-        LocationWeatherViewData(
-            locationName: "Berlin",
-            countryCode: countryCode,
-            temperatureText: "24°C",
-            feelsLikeText: "Feels like 25°C",
-            humidityText: "64%",
-            conditionText: conditionText,
-            conditionIconName: "10d"
-        )
     }
 }
