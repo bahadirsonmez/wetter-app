@@ -13,6 +13,8 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
 
     private let locationManager: any LocationManaging
     private var isRequestPending = false
+    // Invalidates stale service-check completions so an older asynchronous
+    // result cannot complete or override the latest location request.
     private var servicesCheckGeneration = 0
 
     // MARK: - Initialization
