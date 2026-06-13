@@ -90,4 +90,13 @@ final class LocationWeatherViewTests: XCTestCase {
             view.forecastContainerView.statusView.superview === view.forecastContainerView
         )
     }
+
+    func testTilesContainerContainsWeatherTilesView() {
+        let view = LocationWeatherView()
+
+        XCTAssertTrue(
+            view.tilesContainerView.tilesView.superview
+                === view.tilesContainerView
+        )
+    }
 }
