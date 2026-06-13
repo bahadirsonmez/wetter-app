@@ -16,7 +16,8 @@ final class LocationWeatherViewStateTests: XCTestCase {
                 days: [],
                 minimumTemperature: .zero,
                 maximumTemperature: .zero
-            )
+            ),
+            tiles: []
         )
 
         XCTAssertEqual(
