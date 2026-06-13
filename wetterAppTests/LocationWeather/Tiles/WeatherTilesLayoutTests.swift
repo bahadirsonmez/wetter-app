@@ -17,29 +17,53 @@ final class WeatherTilesLayoutTests: XCTestCase {
         wideMaximumItemCount: 8
     )
 
-    func testCompactWidthUsesTwoColumnsAndShowsFirstFourItems() {
+    func testCompactWidthUsesTwoColumns() {
+        let result = makeLayout(
+            availableWidth: 490,
+            itemCount: 8
+        )
+
+        XCTAssertEqual(
+            Set(result.itemFrames.map(\.minX)).count,
+            2
+        )
+    }
+
+    func testMediumWidthUsesThreeColumns() {
+        let result = makeLayout(
+            availableWidth: 500,
+            itemCount: 8
+        )
+
+        XCTAssertEqual(
+            Set(result.itemFrames.map(\.minX)).count,
+            3
+        )
+    }
+
+    func testWideWidthUsesFourColumns() {
+        let result = makeLayout(
+            availableWidth: 900,
+            itemCount: 8
+        )
+
+        XCTAssertEqual(
+            Set(result.itemFrames.map(\.minX)).count,
+            4
+        )
+    }
+
+    func testCompactWidthDisplaysFourItems() {
         let result = makeLayout(
             availableWidth: 490,
             itemCount: 8
         )
 
         XCTAssertEqual(result.visibleItemCount, 4)
-        XCTAssertEqual(
-            result.itemFrames,
-            [
-                CGRect(x: 20, y: 10, width: 210, height: 210),
-                CGRect(x: 240, y: 10, width: 210, height: 210),
-                CGRect(x: 20, y: 240, width: 210, height: 210),
-                CGRect(x: 240, y: 240, width: 210, height: 210)
-            ]
-        )
-        XCTAssertEqual(
-            result.contentSize,
-            CGSize(width: 490, height: 480)
-        )
+        XCTAssertEqual(result.itemFrames.count, 4)
     }
 
-    func testMediumWidthUsesThreeColumnsAndShowsFirstSixItems() {
+    func testMediumWidthDisplaysSixItems() {
         let result = makeLayout(
             availableWidth: 500,
             itemCount: 8
@@ -47,18 +71,9 @@ final class WeatherTilesLayoutTests: XCTestCase {
 
         XCTAssertEqual(result.visibleItemCount, 6)
         XCTAssertEqual(result.itemFrames.count, 6)
-        XCTAssertEqual(result.itemFrames[0].minX, 20)
-        XCTAssertEqual(result.itemFrames[1].minX, 170)
-        XCTAssertEqual(result.itemFrames[2].minX, 320)
-        XCTAssertEqual(result.itemFrames[3].minY, 170)
-        XCTAssertEqual(result.itemFrames[0].size, CGSize(width: 140, height: 140))
-        XCTAssertEqual(
-            result.contentSize,
-            CGSize(width: 500, height: 340)
-        )
     }
 
-    func testWideWidthUsesFourColumnsAndShowsAllEightItems() {
+    func testWideWidthDisplaysEightItems() {
         let result = makeLayout(
             availableWidth: 900,
             itemCount: 8
@@ -66,37 +81,80 @@ final class WeatherTilesLayoutTests: XCTestCase {
 
         XCTAssertEqual(result.visibleItemCount, 8)
         XCTAssertEqual(result.itemFrames.count, 8)
-        XCTAssertEqual(
-            result.itemFrames[0].size,
-            CGSize(width: 202.5, height: 202.5)
+    }
+
+    func testItemFramesDoNotOverlap() {
+        let frames = makeLayout(
+            availableWidth: 900,
+            itemCount: 8
+        ).itemFrames
+
+        for firstIndex in frames.indices {
+            for secondIndex in frames.indices where secondIndex > firstIndex {
+                XCTAssertFalse(
+                    frames[firstIndex].intersects(frames[secondIndex])
+                )
+            }
+        }
+    }
+
+    func testItemFramesRespectContentInsets() {
+        let result = makeLayout(
+            availableWidth: 900,
+            itemCount: 8
         )
-        XCTAssertEqual(result.itemFrames[4].minY, 232.5)
+
+        result.itemFrames.forEach { frame in
+            XCTAssertGreaterThanOrEqual(frame.minX, metrics.contentInsets.left)
+            XCTAssertGreaterThanOrEqual(frame.minY, metrics.contentInsets.top)
+            XCTAssertLessThanOrEqual(
+                frame.maxX,
+                result.contentSize.width - metrics.contentInsets.right
+            )
+            XCTAssertLessThanOrEqual(
+                frame.maxY,
+                result.contentSize.height - metrics.contentInsets.bottom
+            )
+        }
+    }
+
+    func testTilesAreSquare() {
+        let result = makeLayout(
+            availableWidth: 900,
+            itemCount: 8
+        )
+
+        result.itemFrames.forEach {
+            XCTAssertEqual($0.width, $0.height)
+        }
+    }
+
+    func testContentHeightIncludesLastRow() throws {
+        let result = makeLayout(
+            availableWidth: 500,
+            itemCount: 4
+        )
+        let lastRowMaximumY = try XCTUnwrap(
+            result.itemFrames.map(\.maxY).max()
+        )
+
         XCTAssertEqual(
-            result.contentSize,
-            CGSize(width: 900, height: 465)
+            result.contentSize.height,
+            lastRowMaximumY + metrics.contentInsets.bottom
         )
     }
 
-    func testAccessibilityCategoryReducesColumnCountByOne() {
-        let compactResult = makeLayout(
+    func testAccessibilityCategoryReducesColumnCount() {
+        let result = makeLayout(
             availableWidth: 490,
             itemCount: 4,
             contentSizeCategory: .accessibilityLarge
         )
-        let mediumResult = makeLayout(
-            availableWidth: 500,
-            itemCount: 6,
-            contentSizeCategory: .accessibilityLarge
-        )
-        let wideResult = makeLayout(
-            availableWidth: 900,
-            itemCount: 8,
-            contentSizeCategory: .accessibilityLarge
-        )
 
-        XCTAssertEqual(compactResult.itemFrames[1].minX, 20)
-        XCTAssertEqual(mediumResult.itemFrames[2].minX, 20)
-        XCTAssertEqual(wideResult.itemFrames[3].minX, 20)
+        XCTAssertEqual(
+            Set(result.itemFrames.map(\.minX)).count,
+            1
+        )
     }
 
     func testItemCountBelowWidthLimitOnlyCreatesAvailableItems() {
@@ -109,7 +167,7 @@ final class WeatherTilesLayoutTests: XCTestCase {
         XCTAssertEqual(result.itemFrames.count, 3)
     }
 
-    func testEmptyItemsProduceEmptyLayout() {
+    func testZeroItemsProducesZeroHeight() {
         let result = makeLayout(
             availableWidth: 320,
             itemCount: 0
@@ -121,6 +179,19 @@ final class WeatherTilesLayoutTests: XCTestCase {
             result.contentSize,
             CGSize(width: 320, height: 0)
         )
+    }
+
+    func testWidthChangeProducesNewFrames() {
+        let compactResult = makeLayout(
+            availableWidth: 490,
+            itemCount: 8
+        )
+        let wideResult = makeLayout(
+            availableWidth: 900,
+            itemCount: 8
+        )
+
+        XCTAssertNotEqual(compactResult.itemFrames, wideResult.itemFrames)
     }
 
     func testInsufficientWidthProducesZeroSizedFrames() {

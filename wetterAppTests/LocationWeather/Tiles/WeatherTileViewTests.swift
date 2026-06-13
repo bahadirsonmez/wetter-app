@@ -5,7 +5,7 @@ import XCTest
 @MainActor
 final class WeatherTileViewTests: XCTestCase {
 
-    func testConfigureDisplaysTileContent() {
+    func testTileViewDisplaysTitleAndValue() {
         let view = makeView()
 
         view.configure(with: makeViewData(detailText: "North-east"))
@@ -62,7 +62,7 @@ final class WeatherTileViewTests: XCTestCase {
         XCTAssertEqual(view.accessibilityLabel, "Wind, 2.5 m/s")
     }
 
-    func testLabelsSupportDynamicType() {
+    func testTileViewSupportsDynamicType() {
         let view = makeView()
 
         XCTAssertTrue(view.titleLabel.adjustsFontForContentSizeCategory)
@@ -70,7 +70,7 @@ final class WeatherTileViewTests: XCTestCase {
         XCTAssertTrue(view.detailLabel.adjustsFontForContentSizeCategory)
     }
 
-    func testLayoutPositionsSubviewsWithoutConstraints() {
+    func testTileViewUsesNoAutoLayoutConstraints() {
         let view = makeView()
         view.configure(with: makeViewData(detailText: "North-east"))
 
