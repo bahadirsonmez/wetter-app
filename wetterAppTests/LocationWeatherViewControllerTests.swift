@@ -54,7 +54,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
 
-        context.viewModel.send(.loaded(makeViewData()))
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
 
         XCTAssertEqual(
             context.weatherView.summaryView.locationLabel.text,
@@ -102,7 +102,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     func testPullToRefreshRefreshesViewModel() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
-        context.viewModel.send(.loaded(makeViewData()))
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
 
         context.weatherView.refreshControl.sendActions(for: .valueChanged)
 
@@ -123,7 +123,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     func testRefreshLoadingKeepsExistingSummaryVisible() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
-        context.viewModel.send(.loaded(makeViewData()))
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
 
         context.weatherView.refreshControl.sendActions(for: .valueChanged)
         context.viewModel.send(.loading)
@@ -139,11 +139,17 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     func testRefreshSuccessEndsRefreshing() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
-        context.viewModel.send(.loaded(makeViewData()))
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
         context.weatherView.refreshControl.beginRefreshing()
         context.weatherView.refreshControl.sendActions(for: .valueChanged)
 
-        context.viewModel.send(.loaded(makeViewData(locationName: "Hamburg")))
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    locationName: "Hamburg"
+                )
+            )
+        )
 
         XCTAssertFalse(context.weatherView.refreshControl.isRefreshing)
         XCTAssertEqual(
@@ -162,7 +168,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         }
 
         context.viewController.loadViewIfNeeded()
-        context.viewModel.send(.loaded(makeViewData()))
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
         context.weatherView.refreshControl.beginRefreshing()
         context.weatherView.refreshControl.sendActions(for: .valueChanged)
 
@@ -255,20 +261,6 @@ final class LocationWeatherViewControllerTests: XCTestCase {
             locationProvider: locationProvider
         )
     }
-
-    private func makeViewData(
-        locationName: String = "Berlin"
-    ) -> LocationWeatherViewData {
-        LocationWeatherViewData(
-            locationName: locationName,
-            countryCode: "DE",
-            temperatureText: "24°C",
-            feelsLikeText: "Feels like 25°C",
-            humidityText: "64%",
-            conditionText: "Moderate rain",
-            conditionIconName: "10d"
-        )
-    }
 }
 
 @MainActor
@@ -284,51 +276,5 @@ private struct TestContext {
         }
 
         return weatherView
-    }
-}
-
-@MainActor
-private final class CurrentLocationProviderSpy: CurrentLocationProviding {
-
-    var onLocationResult: (
-        (Result<CLLocationCoordinate2D, CurrentLocationError>) -> Void
-    )?
-
-    private(set) var requestCallCount = 0
-
-    func requestCurrentLocation() {
-        requestCallCount += 1
-    }
-
-    func send(
-        _ result: Result<CLLocationCoordinate2D, CurrentLocationError>
-    ) {
-        onLocationResult?(result)
-    }
-}
-
-@MainActor
-private final class LocationWeatherViewModelSpy:
-    LocationWeatherViewModeling {
-
-    private(set) var state: LocationWeatherViewState = .idle
-    var onStateChange: ((LocationWeatherViewState) -> Void)?
-
-    private(set) var receivedLatitude: Double?
-    private(set) var receivedLongitude: Double?
-    private(set) var refreshCallCount = 0
-
-    func loadWeather(latitude: Double, longitude: Double) {
-        receivedLatitude = latitude
-        receivedLongitude = longitude
-    }
-
-    func refresh() {
-        refreshCallCount += 1
-    }
-
-    func send(_ state: LocationWeatherViewState) {
-        self.state = state
-        onStateChange?(state)
     }
 }
