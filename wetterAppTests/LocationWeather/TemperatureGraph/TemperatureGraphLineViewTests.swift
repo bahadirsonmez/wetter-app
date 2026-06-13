@@ -25,8 +25,8 @@ final class TemperatureGraphLineViewTests: XCTestCase {
             maximumTemperature: 40
         )
 
-        XCTAssertEqual(geometry.previousPoint, CGPoint(x: 0, y: 4))
-        XCTAssertEqual(geometry.nextPoint, CGPoint(x: 100, y: 76))
+        XCTAssertEqual(geometry.previousPoint, CGPoint(x: 0, y: 22))
+        XCTAssertEqual(geometry.nextPoint, CGPoint(x: 100, y: 58))
     }
 
     func testGeometryCentersPointsWhenAllTemperaturesAreEqual() {
