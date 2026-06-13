@@ -63,6 +63,14 @@ final class TemperatureGraphView: UIView {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
+    }
+
     // MARK: - Configuration
 
     func configure(with viewData: HourlyForecastViewData) {
