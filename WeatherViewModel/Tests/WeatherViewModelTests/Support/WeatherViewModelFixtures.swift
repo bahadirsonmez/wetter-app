@@ -1,3 +1,4 @@
+import Foundation
 @testable import WeatherModel
 
 enum WeatherViewModelFixtures {
@@ -34,6 +35,68 @@ enum WeatherViewModelFixtures {
 
     static func weather(locationName: String) -> CurrentWeather {
         makeWeather(locationName: locationName)
+    }
+
+    static func forecastResponse(
+        samples: [(timestamp: Int, temperature: Double, description: String)] = [
+            (1_781_355_600, 24.4, "moderate rain")
+        ],
+        timezoneOffset: Int = 7_200
+    ) -> ForecastResponse {
+        let forecastObjects = samples.map {
+            """
+            {
+              "dt": \($0.timestamp),
+              "main": {
+                "temp": \($0.temperature),
+                "feels_like": \($0.temperature),
+                "temp_min": \($0.temperature),
+                "temp_max": \($0.temperature),
+                "pressure": 1012,
+                "humidity": 64
+              },
+              "weather": [
+                {
+                  "id": 500,
+                  "main": "Rain",
+                  "description": "\($0.description)",
+                  "icon": "10d"
+                }
+              ],
+              "clouds": { "all": 48 },
+              "wind": { "speed": 4.2, "deg": 35 },
+              "visibility": 10000,
+              "pop": 0.35,
+              "sys": { "pod": "d" },
+              "dt_txt": "2026-06-13 13:00:00"
+            }
+            """
+        }
+
+        let json = """
+        {
+          "cnt": \(forecastObjects.count),
+          "list": [\(forecastObjects.joined(separator: ","))],
+          "city": {
+            "id": 2950159,
+            "name": "Berlin",
+            "coord": { "lat": 52.52, "lon": 13.405 },
+            "country": "DE",
+            "timezone": \(timezoneOffset),
+            "sunrise": 1781313240,
+            "sunset": 1781368020
+          }
+        }
+        """
+
+        do {
+            return try JSONDecoder().decode(
+                ForecastResponse.self,
+                from: Data(json.utf8)
+            )
+        } catch {
+            preconditionFailure("Invalid forecast fixture: \(error)")
+        }
     }
 
     private static func makeWeather(
