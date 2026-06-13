@@ -137,7 +137,7 @@ final class LocationWeatherViewController: UIViewController {
 
         case let .loaded(viewData):
             hasLoadedWeather = true
-            contentView.summaryView.configure(with: viewData)
+            contentView.summaryContainerView.summaryView.configure(with: viewData)
             renderForecast(viewData.hourlyForecast)
             finishRefreshing()
             showContent()
@@ -207,16 +207,19 @@ final class LocationWeatherViewController: UIViewController {
 
     private func showInitialLoading() {
         contentView.scrollView.isHidden = true
-        contentView.statusView.isHidden = true
-        contentView.statusView.onAction = nil
+        contentView.summaryContainerView.statusView.isHidden = true
+        contentView.summaryContainerView.statusView.onAction = nil
         contentView.loadingView.isHidden = false
     }
 
     private func showContent() {
         contentView.scrollView.isHidden = false
         contentView.loadingView.isHidden = true
-        contentView.statusView.isHidden = true
-        contentView.statusView.onAction = nil
+        contentView.summaryContainerView.statusView.isHidden = true
+        contentView.summaryContainerView.statusView.onAction = nil
+        contentView.summaryContainerView.summaryView.isHidden = false
+        contentView.forecastContainerView.isHidden = false
+        contentView.tilesContainerView.isHidden = false
     }
 
     private func showWeatherError(_ error: LocationWeatherViewError) {
@@ -236,15 +239,18 @@ final class LocationWeatherViewController: UIViewController {
         actionTitle: String?,
         onAction: (() -> Void)?
     ) {
-        contentView.statusView.configure(
+        contentView.summaryContainerView.statusView.configure(
             title: title,
             message: message,
             actionTitle: actionTitle
         )
-        contentView.statusView.onAction = onAction
-        contentView.scrollView.isHidden = true
+        contentView.summaryContainerView.statusView.onAction = onAction
+        contentView.scrollView.isHidden = false
         contentView.loadingView.isHidden = true
-        contentView.statusView.isHidden = false
+        contentView.summaryContainerView.statusView.isHidden = false
+        contentView.summaryContainerView.summaryView.isHidden = true
+        contentView.forecastContainerView.isHidden = true
+        contentView.tilesContainerView.isHidden = true
     }
 
     private func showRefreshError(_ error: LocationWeatherViewError) {
@@ -274,20 +280,20 @@ final class LocationWeatherViewController: UIViewController {
             !$0.items.isEmpty
         }
 
-        contentView.temperatureGraphView.isHidden = false
+        contentView.forecastContainerView.temperatureGraphView.isHidden = false
 
         guard hasForecastItems else {
-            contentView.temperatureGraphView.reset()
-            contentView.forecastStatusView.configure(
+            contentView.forecastContainerView.temperatureGraphView.reset()
+            contentView.forecastContainerView.statusView.configure(
                 title: "Forecast unavailable",
                 message: "Hourly forecast is currently unavailable.",
                 actionTitle: nil
             )
-            contentView.forecastStatusView.isHidden = false
+            contentView.forecastContainerView.statusView.isHidden = false
             return
         }
 
-        contentView.temperatureGraphView.configure(with: viewData)
-        contentView.forecastStatusView.isHidden = true
+        contentView.forecastContainerView.temperatureGraphView.configure(with: viewData)
+        contentView.forecastContainerView.statusView.isHidden = true
     }
 }
