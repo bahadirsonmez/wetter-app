@@ -89,7 +89,7 @@ final class TemperatureGraphLineView: UIView {
                 CGPoint(
                     x: bounds.minX,
                     y: yPosition(
-                        for: $0,
+                        for: ($0 + configuration.currentTemperature) / 2.0,
                         in: bounds,
                         minimumTemperature:
                             configuration.minimumTemperature,
@@ -111,7 +111,7 @@ final class TemperatureGraphLineView: UIView {
                 CGPoint(
                     x: bounds.maxX,
                     y: yPosition(
-                        for: $0,
+                        for: ($0 + configuration.currentTemperature) / 2.0,
                         in: bounds,
                         minimumTemperature:
                             configuration.minimumTemperature,
