@@ -13,12 +13,12 @@ final class WeatherTileView: UIView {
     // MARK: - Constants
 
     private enum Layout {
-        static let contentInset: CGFloat = 12
+        static let contentInset: CGFloat = 16
         static let symbolSize: CGFloat = 28
-        static let titleSpacing: CGFloat = 8
         static let valueSpacing: CGFloat = 10
         static let detailSpacing: CGFloat = 4
-        static let cornerRadius: CGFloat = 16
+        static let titleSpacing: CGFloat = 6
+        static let cornerRadius: CGFloat = 8
     }
 
     // MARK: - Initialization
@@ -60,49 +60,67 @@ final class WeatherTileView: UIView {
             height: symbolSide
         )
 
-        let titleX = symbolImageView.frame.maxX + Layout.titleSpacing
-        let titleWidth = max(.zero, contentFrame.maxX - titleX)
+        let titleHeight = min(
+            fittingHeight(for: titleLabel, width: contentFrame.width),
+            contentFrame.height
+        )
         titleLabel.frame = CGRect(
-            x: titleX,
-            y: contentFrame.minY,
-            width: titleWidth,
-            height: min(
-                symbolSide,
-                fittingHeight(for: titleLabel, width: titleWidth)
-            )
+            x: contentFrame.minX,
+            y: max(contentFrame.minY, contentFrame.maxY - titleHeight),
+            width: contentFrame.width,
+            height: titleHeight
         )
 
-        var nextY = max(
-            symbolImageView.frame.maxY,
-            titleLabel.frame.maxY
-        ) + Layout.valueSpacing
+        // Optional detail sits directly above the title and gives the large
+        // value the remaining space between the symbol and lower labels.
+        let detailMaximumY = max(
+            contentFrame.minY,
+            titleLabel.frame.minY - Layout.titleSpacing
+        )
+        if detailLabel.isHidden {
+            detailLabel.frame = .zero
+        } else {
+            let detailHeight = min(
+                fittingHeight(for: detailLabel, width: contentFrame.width),
+                max(.zero, detailMaximumY - contentFrame.minY)
+            )
+            detailLabel.frame = CGRect(
+                x: contentFrame.minX,
+                y: detailMaximumY - detailHeight,
+                width: contentFrame.width,
+                height: detailHeight
+            )
+        }
+
+        let valueY = symbolImageView.frame.maxY + Layout.valueSpacing
+        let valueMaximumY = (
+            detailLabel.isHidden
+                ? titleLabel.frame.minY
+                : detailLabel.frame.minY
+        ) - Layout.detailSpacing
         valueLabel.frame = frame(
             for: valueLabel,
             x: contentFrame.minX,
-            y: nextY,
+            y: valueY,
             width: contentFrame.width,
-            maximumY: contentFrame.maxY
+            maximumY: max(valueY, valueMaximumY)
         )
-
-        nextY = valueLabel.frame.maxY + Layout.detailSpacing
-        detailLabel.frame = detailLabel.isHidden
-            ? .zero
-            : frame(
-                for: detailLabel,
-                x: contentFrame.minX,
-                y: nextY,
-                width: contentFrame.width,
-                maximumY: contentFrame.maxY
-            )
     }
 
     // MARK: - Configuration
 
     func configure(with viewData: WeatherTileViewData) {
-        symbolImageView.image = UIImage(systemName: viewData.symbolName)
+        let style = WeatherTileStyle(identifier: viewData.id)
+
+        backgroundColor = style.backgroundColor
+        symbolImageView.image = UIImage(systemName: style.symbolName)
+        symbolImageView.tintColor = style.foregroundColor
         titleLabel.text = viewData.title
+        titleLabel.textColor = style.foregroundColor
         valueLabel.text = viewData.valueText
+        valueLabel.textColor = style.foregroundColor
         detailLabel.text = viewData.detailText
+        detailLabel.textColor = style.foregroundColor
         detailLabel.isHidden = viewData.detailText == nil
         accessibilityLabel = "\(viewData.title), \(viewData.valueText)"
         setNeedsLayout()
@@ -115,6 +133,11 @@ final class WeatherTileView: UIView {
         detailLabel.text = nil
         detailLabel.isHidden = true
         accessibilityLabel = nil
+        backgroundColor = .secondarySystemBackground
+        symbolImageView.tintColor = .systemBlue
+        titleLabel.textColor = .secondaryLabel
+        valueLabel.textColor = .label
+        detailLabel.textColor = .secondaryLabel
         setNeedsLayout()
     }
 }
@@ -140,8 +163,8 @@ private extension WeatherTileView {
         )
         configure(
             valueLabel,
-            textStyle: .title2,
-            baseFont: .systemFont(ofSize: 22, weight: .semibold),
+            textStyle: .title1,
+            baseFont: .systemFont(ofSize: 28, weight: .bold),
             color: .label
         )
         configure(

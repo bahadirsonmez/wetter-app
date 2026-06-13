@@ -17,6 +17,20 @@ final class WeatherTileViewTests: XCTestCase {
         XCTAssertFalse(view.detailLabel.isHidden)
     }
 
+    func testConfigureAppliesIdentifierStyle() {
+        let view = makeView()
+        let style = WeatherTileStyle(identifier: .wind)
+
+        view.configure(with: makeViewData(detailText: nil))
+
+        XCTAssertEqual(view.backgroundColor, style.backgroundColor)
+        XCTAssertEqual(view.symbolImageView.tintColor, style.foregroundColor)
+        XCTAssertEqual(view.titleLabel.textColor, style.foregroundColor)
+        XCTAssertEqual(view.valueLabel.textColor, style.foregroundColor)
+        XCTAssertEqual(view.detailLabel.textColor, style.foregroundColor)
+        XCTAssertEqual(view.layer.cornerRadius, 8)
+    }
+
     func testConfigureWithoutDetailHidesDetailLabel() {
         let view = makeView()
 
@@ -71,13 +85,13 @@ final class WeatherTileViewTests: XCTestCase {
         XCTAssertTrue(view.bounds.contains(view.titleLabel.frame))
         XCTAssertTrue(view.bounds.contains(view.valueLabel.frame))
         XCTAssertTrue(view.bounds.contains(view.detailLabel.frame))
-        XCTAssertGreaterThanOrEqual(
-            view.valueLabel.frame.minY,
-            view.symbolImageView.frame.maxY
-        )
-        XCTAssertGreaterThanOrEqual(
-            view.detailLabel.frame.minY,
-            view.valueLabel.frame.maxY
+        XCTAssertEqual(view.symbolImageView.frame.minX, 16)
+        XCTAssertEqual(view.symbolImageView.frame.minY, 16)
+        XCTAssertEqual(view.titleLabel.frame.minX, 16)
+        XCTAssertEqual(view.titleLabel.frame.maxY, view.bounds.maxY - 16)
+        XCTAssertLessThanOrEqual(
+            view.valueLabel.frame.maxY,
+            view.detailLabel.frame.minY
         )
     }
 
