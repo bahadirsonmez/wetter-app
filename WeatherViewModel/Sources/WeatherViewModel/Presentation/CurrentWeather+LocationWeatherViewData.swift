@@ -26,6 +26,6 @@ extension LocationWeatherViewData {
         }
         conditionIconName = condition?.icon
         self.hourlyForecast = hourlyForecast
-        tiles = []
+        tiles = WeatherTileViewDataMapper().map(weather)
     }
 }
