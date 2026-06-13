@@ -6,13 +6,10 @@ final class LocationWeatherView: UIView {
 
     let scrollView = UIScrollView()
     let refreshControl = UIRefreshControl()
-    let summaryView = LocationWeatherSummaryView()
-    let forecastContainerView = UIView()
-    let temperatureGraphView = TemperatureGraphView()
-    let forecastStatusView = LocationWeatherStatusView()
+    let summaryContainerView = LocationWeatherSummaryContainerView()
+    let forecastContainerView = LocationWeatherForecastContainerView()
     let tilesContainerView = UIView()
     let loadingView = LocationWeatherLoadingView()
-    let statusView = LocationWeatherStatusView()
 
     private let contentView = UIView()
 
@@ -38,34 +35,28 @@ final class LocationWeatherView: UIView {
         [
             scrollView,
             contentView,
-            summaryView,
+            summaryContainerView,
             forecastContainerView,
-            temperatureGraphView,
-            forecastStatusView,
             tilesContainerView,
-            loadingView,
-            statusView
+            loadingView
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
         addSubview(scrollView)
         scrollView.addSubview(contentView)
-        contentView.addSubview(summaryView)
+        contentView.addSubview(summaryContainerView)
         contentView.addSubview(forecastContainerView)
-        forecastContainerView.addSubview(temperatureGraphView)
-        forecastContainerView.addSubview(forecastStatusView)
         contentView.addSubview(tilesContainerView)
         addSubview(loadingView)
-        addSubview(statusView)
 
         loadingView.isHidden = true
-        statusView.isHidden = true
-        temperatureGraphView.isHidden = true
-        forecastStatusView.isHidden = true
+        summaryContainerView.statusView.isHidden = true
+        forecastContainerView.temperatureGraphView.isHidden = true
+        forecastContainerView.statusView.isHidden = true
 
         let placeholderHeightConstraints = [
-            summaryView.heightAnchor.constraint(equalToConstant: 0),
+            summaryContainerView.heightAnchor.constraint(equalToConstant: 0),
             forecastContainerView.heightAnchor.constraint(equalToConstant: 0),
             tilesContainerView.heightAnchor.constraint(equalToConstant: 0)
         ]
@@ -95,48 +86,22 @@ final class LocationWeatherView: UIView {
                 equalTo: scrollView.frameLayoutGuide.widthAnchor
             ),
 
-            summaryView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            summaryView.leadingAnchor.constraint(
+            summaryContainerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            summaryContainerView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor
             ),
-            summaryView.trailingAnchor.constraint(
+            summaryContainerView.trailingAnchor.constraint(
                 equalTo: contentView.trailingAnchor
             ),
 
             forecastContainerView.topAnchor.constraint(
-                equalTo: summaryView.bottomAnchor
+                equalTo: summaryContainerView.bottomAnchor
             ),
             forecastContainerView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor
             ),
             forecastContainerView.trailingAnchor.constraint(
                 equalTo: contentView.trailingAnchor
-            ),
-
-            temperatureGraphView.topAnchor.constraint(
-                equalTo: forecastContainerView.topAnchor
-            ),
-            temperatureGraphView.leadingAnchor.constraint(
-                equalTo: forecastContainerView.leadingAnchor
-            ),
-            temperatureGraphView.trailingAnchor.constraint(
-                equalTo: forecastContainerView.trailingAnchor
-            ),
-            temperatureGraphView.bottomAnchor.constraint(
-                equalTo: forecastContainerView.bottomAnchor
-            ),
-
-            forecastStatusView.topAnchor.constraint(
-                equalTo: forecastContainerView.topAnchor
-            ),
-            forecastStatusView.leadingAnchor.constraint(
-                equalTo: forecastContainerView.leadingAnchor
-            ),
-            forecastStatusView.trailingAnchor.constraint(
-                equalTo: forecastContainerView.trailingAnchor
-            ),
-            forecastStatusView.bottomAnchor.constraint(
-                equalTo: forecastContainerView.bottomAnchor
             ),
 
             tilesContainerView.topAnchor.constraint(
@@ -157,14 +122,7 @@ final class LocationWeatherView: UIView {
             ),
             loadingView.leadingAnchor.constraint(equalTo: leadingAnchor),
             loadingView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            loadingView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            statusView.topAnchor.constraint(
-                equalTo: safeAreaLayoutGuide.topAnchor
-            ),
-            statusView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            statusView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            statusView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            loadingView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ] + placeholderHeightConstraints)
     }
 }
