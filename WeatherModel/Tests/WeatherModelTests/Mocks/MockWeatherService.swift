@@ -27,4 +27,11 @@ final class MockWeatherService: WeatherFetching, @unchecked Sendable {
     ) async throws -> CurrentWeather {
         try result.get()
     }
+
+    func fetchForecast(
+        latitude: Double,
+        longitude: Double
+    ) async throws -> ForecastResponse {
+        throw NetworkError.invalidResponse
+    }
 }

@@ -137,6 +137,13 @@ final class WeatherFetchingSpy: WeatherFetching, @unchecked Sendable {
         }
     }
 
+    func fetchForecast(
+        latitude: Double,
+        longitude: Double
+    ) async throws -> ForecastResponse {
+        throw NetworkError.invalidResponse
+    }
+
     // MARK: - Test Control
 
     func completeRequest(
