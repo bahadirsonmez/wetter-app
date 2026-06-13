@@ -1,10 +1,11 @@
 import XCTest
+import WeatherModel
 @testable import WeatherViewModel
 
 final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
 
     func testMapsCurrentWeatherIntoViewData() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.berlinWeather
         )
 
@@ -18,7 +19,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testRoundsNegativeTemperatureDeterministically() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.negativeTemperatureWeather
         )
 
@@ -27,7 +28,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testPreservesMissingCountryCode() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.weatherWithoutCountryCode
         )
 
@@ -35,7 +36,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testPreservesEmptyLocationName() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.weatherWithEmptyLocationName
         )
 
@@ -43,7 +44,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testUsesNilWhenConditionsAreEmpty() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.weatherWithoutCondition
         )
 
@@ -52,7 +53,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testPreservesEmptyConditionDescription() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather:
                 WeatherViewModelFixtures.weatherWithEmptyConditionDescription
         )
@@ -62,7 +63,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
     }
 
     func testUsesInjectedFormatter() {
-        let viewData = LocationWeatherViewData(
+        let viewData = makeViewData(
             weather: WeatherViewModelFixtures.berlinWeather,
             formatter: StubFormatter()
         )
@@ -71,6 +72,21 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
         XCTAssertEqual(viewData.feelsLikeText, "Feels like temperature")
         XCTAssertEqual(viewData.humidityText, "percentage")
         XCTAssertEqual(viewData.conditionText, "condition")
+    }
+
+    private func makeViewData(
+        weather: CurrentWeather,
+        formatter: any LocationWeatherFormatting = LocationWeatherFormatter()
+    ) -> LocationWeatherViewData {
+        LocationWeatherViewData(
+            weather: weather,
+            hourlyForecast: HourlyForecastViewData(
+                days: [],
+                minimumTemperature: .zero,
+                maximumTemperature: .zero
+            ),
+            formatter: formatter
+        )
     }
 }
 
