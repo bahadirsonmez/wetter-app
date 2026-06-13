@@ -272,7 +272,6 @@ final class LocationWeatherViewController: UIViewController {
         contentView.refreshControl.endRefreshing()
     }
     
-    // TODO: - Move it to the configuration function in contentview
     private func renderForecast(
         _ viewData: HourlyForecastViewData
     ) {
