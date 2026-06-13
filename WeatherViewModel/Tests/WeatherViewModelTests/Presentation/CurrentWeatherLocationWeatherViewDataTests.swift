@@ -16,6 +16,7 @@ final class CurrentWeatherLocationWeatherViewDataTests: XCTestCase {
         XCTAssertEqual(viewData.humidityText, "64%")
         XCTAssertEqual(viewData.conditionText, "Moderate rain")
         XCTAssertEqual(viewData.conditionIconName, "10d")
+        XCTAssertTrue(viewData.tiles.isEmpty)
     }
 
     func testRoundsNegativeTemperatureDeterministically() {
