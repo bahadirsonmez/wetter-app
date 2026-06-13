@@ -9,6 +9,14 @@ struct TemperatureGraphLayoutMetrics: Equatable {
     let headerSpacing: CGFloat
     let contentInsets: UIEdgeInsets
 
+    var contentHeight: CGFloat {
+        contentInsets.top
+            + headerHeight
+            + headerSpacing
+            + itemSize.height
+            + contentInsets.bottom
+    }
+
     init(
         itemSize: CGSize = CGSize(width: 80, height: 144),
         itemSpacing: CGFloat = 8,

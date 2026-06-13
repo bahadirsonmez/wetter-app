@@ -74,6 +74,86 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertTrue(context.weatherView.statusView.isHidden)
     }
 
+    func testLoadedStateDisplaysTemperatureGraph() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
+
+        XCTAssertFalse(context.weatherView.temperatureGraphView.isHidden)
+        XCTAssertTrue(context.weatherView.forecastStatusView.isHidden)
+        XCTAssertEqual(
+            context.weatherView.temperatureGraphView.collectionView
+                .numberOfSections,
+            1
+        )
+    }
+
+    func testLoadedStateWithEmptyForecastDisplaysLocalUnavailableStatus() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    hourlyForecast: LocationWeatherViewDataFixture.emptyForecast
+                )
+            )
+        )
+
+        XCTAssertEqual(
+            context.weatherView.forecastStatusView.titleLabel.text,
+            "Forecast unavailable"
+        )
+        XCTAssertFalse(context.weatherView.forecastStatusView.isHidden)
+        XCTAssertFalse(context.weatherView.scrollView.isHidden)
+        XCTAssertTrue(context.weatherView.statusView.isHidden)
+    }
+
+    func testRefreshSuccessUpdatesForecast() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+        context.viewModel.send(.loaded(LocationWeatherViewDataFixture.berlin()))
+        context.weatherView.refreshControl.sendActions(for: .valueChanged)
+
+        let updatedForecast = HourlyForecastViewData(
+            days: [
+                HourlyForecastDayViewData(
+                    id: 1_781_390_400,
+                    title: "Sunday, Jun 14",
+                    items: [
+                        HourlyForecastItemViewData(
+                            id: 1_781_398_800,
+                            timeText: "15:00",
+                            temperatureText: "28°C",
+                            conditionText: "Clear sky",
+                            temperatureValue: 28
+                        )
+                    ]
+                )
+            ],
+            minimumTemperature: 28,
+            maximumTemperature: 28
+        )
+
+        context.viewModel.send(
+            .loaded(
+                LocationWeatherViewDataFixture.berlin(
+                    hourlyForecast: updatedForecast
+                )
+            )
+        )
+
+        let collectionView = context.weatherView.temperatureGraphView
+            .collectionView
+        let cell = collectionView.dataSource?.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 0, section: 0)
+        ) as? HourlyForecastCell
+
+        XCTAssertEqual(cell?.temperatureLabel.text, "28°C")
+    }
+
     func testInitialWeatherFailureShowsRetryStatus() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
