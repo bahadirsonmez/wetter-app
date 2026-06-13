@@ -3,6 +3,9 @@ import UIKit
 final class ForecastDayHeaderView: UICollectionReusableView {
 
     static let elementKind = "ForecastDayHeader"
+    static let reuseIdentifier = String(
+        describing: ForecastDayHeaderView.self
+    )
 
     let titleLabel = UILabel()
 
