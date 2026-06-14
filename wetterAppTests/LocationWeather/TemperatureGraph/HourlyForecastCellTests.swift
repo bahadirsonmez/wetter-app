@@ -10,8 +10,10 @@ final class HourlyForecastCellTests: XCTestCase {
 
         cell.configure(
             with: makeViewData(),
+            previous2Temperature: nil,
             previousTemperature: nil,
             nextTemperature: 22,
+            next2Temperature: nil,
             minimumTemperature: 10,
             maximumTemperature: 30
         )
@@ -27,8 +29,10 @@ final class HourlyForecastCellTests: XCTestCase {
 
         cell.configure(
             with: makeViewData(),
+            previous2Temperature: nil,
             previousTemperature: 18,
             nextTemperature: 22,
+            next2Temperature: nil,
             minimumTemperature: 10,
             maximumTemperature: 30
         )
@@ -37,8 +41,10 @@ final class HourlyForecastCellTests: XCTestCase {
             cell.temperatureGraphCurveView.configuration,
             .init(
                 currentTemperature: 20,
+                previous2Temperature: nil,
                 previousTemperature: 18,
                 nextTemperature: 22,
+                next2Temperature: nil,
                 minimumTemperature: 10,
                 maximumTemperature: 30
             )
@@ -49,8 +55,10 @@ final class HourlyForecastCellTests: XCTestCase {
         let cell = makeCell()
         cell.configure(
             with: makeViewData(),
+            previous2Temperature: nil,
             previousTemperature: 18,
             nextTemperature: 22,
+            next2Temperature: nil,
             minimumTemperature: 10,
             maximumTemperature: 30
         )
