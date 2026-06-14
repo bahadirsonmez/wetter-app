@@ -67,6 +67,36 @@ struct WeatherTilesLayout {
             visibleItemCount: frames.count
         )
     }
+
+    func minimumRequiredHeight(
+        for availableWidth: CGFloat,
+        items: [WeatherTilesLayoutItem]
+    ) -> CGFloat {
+        let width = max(.zero, availableWidth)
+        let usableWidth = max(
+            .zero,
+            width - metrics.contentInsets.left - metrics.contentInsets.right
+        )
+
+        guard
+            !items.isEmpty,
+            usableWidth > .zero,
+            let firstRow = makeRows(
+                items: items,
+                usableWidth: usableWidth
+            ).first
+        else {
+            return .zero
+        }
+
+        let minimumRowHeight = firstRow
+            .map(\.minimumHeight)
+            .max() ?? .zero
+
+        return metrics.contentInsets.top
+            + minimumRowHeight
+            + metrics.contentInsets.bottom
+    }
 }
 
 // MARK: - Helpers

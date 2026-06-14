@@ -21,6 +21,18 @@ final class WeatherTileView: UIView {
         static let cornerRadius: CGFloat = 8
     }
 
+    private enum Typography {
+        static let titleBaseFont = UIFont.systemFont(
+            ofSize: 13,
+            weight: .medium
+        )
+        static let valueBaseFont = UIFont.systemFont(
+            ofSize: 28,
+            weight: .bold
+        )
+        static let detailBaseFont = UIFont.systemFont(ofSize: 12)
+    }
+
     // MARK: - Initialization
 
     override init(frame: CGRect) {
@@ -141,11 +153,21 @@ final class WeatherTileView: UIView {
         setNeedsLayout()
     }
 
-    func makeLayoutItem() -> WeatherTilesLayoutItem {
+    func makeLayoutItem(
+        contentSizeCategory: UIContentSizeCategory? = nil
+    ) -> WeatherTilesLayoutItem {
+        let fonts = measurementFonts(
+            contentSizeCategory: contentSizeCategory
+        )
         let textWidths = [
-            singleLineWidth(for: titleLabel),
-            singleLineWidth(for: valueLabel),
-            detailLabel.isHidden ? .zero : singleLineWidth(for: detailLabel)
+            singleLineWidth(text: titleLabel.text, font: fonts.title),
+            singleLineWidth(text: valueLabel.text, font: fonts.value),
+            detailLabel.isHidden
+                ? .zero
+                : singleLineWidth(
+                    text: detailLabel.text,
+                    font: fonts.detail
+                )
         ]
         let preferredContentWidth = max(
             Layout.symbolSize,
@@ -156,7 +178,13 @@ final class WeatherTileView: UIView {
             preferredWidth: ceil(
                 preferredContentWidth + Layout.contentInset * 2
             ),
-            minimumHeight: ceil(minimumContentHeight())
+            minimumHeight: ceil(
+                minimumContentHeight(
+                    titleFont: fonts.title,
+                    valueFont: fonts.value,
+                    detailFont: fonts.detail
+                )
+            )
         )
     }
 }
@@ -177,19 +205,19 @@ private extension WeatherTileView {
         configure(
             titleLabel,
             textStyle: .caption1,
-            baseFont: .systemFont(ofSize: 13, weight: .medium),
+            baseFont: Typography.titleBaseFont,
             color: .secondaryLabel
         )
         configure(
             valueLabel,
             textStyle: .title1,
-            baseFont: .systemFont(ofSize: 28, weight: .bold),
+            baseFont: Typography.valueBaseFont,
             color: .label
         )
         configure(
             detailLabel,
             textStyle: .caption2,
-            baseFont: .systemFont(ofSize: 12),
+            baseFont: Typography.detailBaseFont,
             color: .secondaryLabel
         )
 
@@ -254,24 +282,28 @@ private extension WeatherTileView {
         )
     }
 
-    func singleLineWidth(for label: UILabel) -> CGFloat {
-        guard let text = label.text, !text.isEmpty else {
+    func singleLineWidth(text: String?, font: UIFont) -> CGFloat {
+        guard let text, !text.isEmpty else {
             return .zero
         }
 
         return ceil(
             (text as NSString).size(
-                withAttributes: [.font: label.font as Any]
+                withAttributes: [.font: font]
             ).width
         )
     }
 
-    func minimumContentHeight() -> CGFloat {
-        let titleHeight = ceil(titleLabel.font.lineHeight)
-        let valueHeight = ceil(valueLabel.font.lineHeight)
+    func minimumContentHeight(
+        titleFont: UIFont,
+        valueFont: UIFont,
+        detailFont: UIFont
+    ) -> CGFloat {
+        let titleHeight = ceil(titleFont.lineHeight)
+        let valueHeight = ceil(valueFont.lineHeight)
         let detailHeight = detailLabel.isHidden
             ? .zero
-            : ceil(detailLabel.font.lineHeight) + Layout.titleSpacing
+            : ceil(detailFont.lineHeight) + Layout.titleSpacing
 
         return Layout.contentInset
             + Layout.symbolSize
@@ -281,6 +313,37 @@ private extension WeatherTileView {
             + detailHeight
             + titleHeight
             + Layout.contentInset
+    }
+
+    func measurementFonts(
+        contentSizeCategory: UIContentSizeCategory?
+    ) -> (title: UIFont, value: UIFont, detail: UIFont) {
+        guard let contentSizeCategory else {
+            return (
+                titleLabel.font,
+                valueLabel.font,
+                detailLabel.font
+            )
+        }
+
+        let traits = UITraitCollection(
+            preferredContentSizeCategory: contentSizeCategory
+        )
+
+        return (
+            UIFontMetrics(forTextStyle: .caption1).scaledFont(
+                for: Typography.titleBaseFont,
+                compatibleWith: traits
+            ),
+            UIFontMetrics(forTextStyle: .title1).scaledFont(
+                for: Typography.valueBaseFont,
+                compatibleWith: traits
+            ),
+            UIFontMetrics(forTextStyle: .caption2).scaledFont(
+                for: Typography.detailBaseFont,
+                compatibleWith: traits
+            )
+        )
     }
 
     func clearFrames() {

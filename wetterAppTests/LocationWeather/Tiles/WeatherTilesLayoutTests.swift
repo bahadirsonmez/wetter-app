@@ -216,6 +216,26 @@ final class WeatherTilesLayoutTests: XCTestCase {
         XCTAssertTrue(result.itemFrames.isEmpty)
         XCTAssertEqual(result.visibleItemCount, 0)
     }
+
+    func testMinimumRequiredHeightIncludesOneRowAndVerticalInsets() {
+        let height = WeatherTilesLayout(metrics: metrics)
+            .minimumRequiredHeight(
+                for: 400,
+                items: [
+                    item(width: 80, height: 70),
+                    item(width: 120, height: 90)
+                ]
+            )
+
+        XCTAssertEqual(height, 130)
+    }
+
+    func testMinimumRequiredHeightWithoutItemsIsZero() {
+        let height = WeatherTilesLayout(metrics: metrics)
+            .minimumRequiredHeight(for: 400, items: [])
+
+        XCTAssertEqual(height, .zero)
+    }
 }
 
 // MARK: - Helpers

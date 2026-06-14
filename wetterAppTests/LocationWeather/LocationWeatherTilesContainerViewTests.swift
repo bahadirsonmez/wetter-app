@@ -32,7 +32,7 @@ final class LocationWeatherTilesContainerViewTests: XCTestCase {
         )
     }
 
-    func testContainerDoesNotProvideIntrinsicHeight() {
+    func testContainerProvidesMinimumHeightForOneTileRow() {
         let container = LocationWeatherTilesContainerView(
             frame: CGRect(x: 0, y: 0, width: 390, height: 390)
         )
@@ -40,9 +40,31 @@ final class LocationWeatherTilesContainerViewTests: XCTestCase {
 
         container.layoutIfNeeded()
 
+        XCTAssertGreaterThan(container.intrinsicContentSize.height, 0)
         XCTAssertEqual(
             container.intrinsicContentSize.height,
-            UIView.noIntrinsicMetric
+            container.tilesView.minimumRequiredHeight(
+                for: container.bounds.width,
+                contentSizeCategory:
+                    container.traitCollection.preferredContentSizeCategory
+            )
+        )
+    }
+
+    func testContainerWithoutTilesHasZeroIntrinsicHeight() {
+        let container = LocationWeatherTilesContainerView(
+            frame: CGRect(x: 0, y: 0, width: 390, height: 390)
+        )
+
+        XCTAssertEqual(container.intrinsicContentSize.height, .zero)
+    }
+
+    func testContainerPrioritizesMinimumTileRowHeight() {
+        let container = LocationWeatherTilesContainerView()
+
+        XCTAssertGreaterThan(
+            container.contentCompressionResistancePriority(for: .vertical),
+            .defaultHigh
         )
     }
 }

@@ -98,6 +98,51 @@ final class WeatherTilesViewTests: XCTestCase {
         )
     }
 
+    func testMinimumRequiredHeightFitsOneTileRow() {
+        let view = makeView(size: CGSize(width: 390, height: 400))
+        view.configure(with: makeTiles(count: 4))
+
+        let minimumHeight = view.minimumRequiredHeight(
+            for: 390,
+            contentSizeCategory: .large
+        )
+
+        view.frame.size.height = minimumHeight
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
+        XCTAssertGreaterThan(minimumHeight, 0)
+        XCTAssertGreaterThan(visibleTileViews(in: view).count, 0)
+    }
+
+    func testAccessibilityCategoryIncreasesMinimumRequiredHeight() {
+        let view = makeView(size: CGSize(width: 390, height: 400))
+        view.configure(with: makeTiles(count: 4))
+
+        let regularHeight = view.minimumRequiredHeight(
+            for: 390,
+            contentSizeCategory: .large
+        )
+        let accessibilityHeight = view.minimumRequiredHeight(
+            for: 390,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+        )
+
+        XCTAssertGreaterThan(accessibilityHeight, regularHeight)
+    }
+
+    func testMinimumRequiredHeightWithoutTilesIsZero() {
+        let view = makeView(size: CGSize(width: 390, height: 400))
+
+        XCTAssertEqual(
+            view.minimumRequiredHeight(
+                for: 390,
+                contentSizeCategory: .large
+            ),
+            .zero
+        )
+    }
+
     func testResetHidesAndReusesTileViews() {
         let view = makeView(size: CGSize(width: 900, height: 600))
         view.configure(with: makeTiles(count: 4))
