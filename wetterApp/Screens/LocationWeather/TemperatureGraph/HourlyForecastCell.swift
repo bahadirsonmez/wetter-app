@@ -8,7 +8,7 @@ final class HourlyForecastCell: UICollectionViewCell {
     let timeLabel = UILabel()
     let temperatureLabel = UILabel()
     let conditionLabel = UILabel()
-    let temperatureGraphLineView = TemperatureGraphLineView()
+    let temperatureGraphCurveView = TemperatureGraphCurveView()
 
     private let labelsStackView = UIStackView()
 
@@ -28,7 +28,7 @@ final class HourlyForecastCell: UICollectionViewCell {
         temperatureLabel.text = nil
         conditionLabel.text = nil
         conditionLabel.isHidden = false
-        temperatureGraphLineView.reset()
+        temperatureGraphCurveView.reset()
         accessibilityLabel = nil
     }
 
@@ -44,7 +44,7 @@ final class HourlyForecastCell: UICollectionViewCell {
         conditionLabel.text = viewData.conditionText
         conditionLabel.isHidden = viewData.conditionText == nil
 
-        temperatureGraphLineView.configure(
+        temperatureGraphCurveView.configure(
             currentTemperature: viewData.temperatureValue,
             previousTemperature: previousTemperature,
             nextTemperature: nextTemperature,
@@ -92,11 +92,11 @@ private extension HourlyForecastCell {
         labelsStackView.addArrangedSubview(temperatureLabel)
         labelsStackView.addArrangedSubview(conditionLabel)
 
-        temperatureGraphLineView.translatesAutoresizingMaskIntoConstraints =
+        temperatureGraphCurveView.translatesAutoresizingMaskIntoConstraints =
             false
 
         contentView.addSubview(labelsStackView)
-        contentView.addSubview(temperatureGraphLineView)
+        contentView.addSubview(temperatureGraphCurveView)
 
         NSLayoutConstraint.activate([
             labelsStackView.topAnchor.constraint(
@@ -109,20 +109,20 @@ private extension HourlyForecastCell {
                 equalTo: contentView.trailingAnchor
             ),
 
-            temperatureGraphLineView.topAnchor.constraint(
+            temperatureGraphCurveView.topAnchor.constraint(
                 greaterThanOrEqualTo: labelsStackView.bottomAnchor,
                 constant: 8
             ),
-            temperatureGraphLineView.leadingAnchor.constraint(
+            temperatureGraphCurveView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor
             ),
-            temperatureGraphLineView.trailingAnchor.constraint(
+            temperatureGraphCurveView.trailingAnchor.constraint(
                 equalTo: contentView.trailingAnchor
             ),
-            temperatureGraphLineView.bottomAnchor.constraint(
+            temperatureGraphCurveView.bottomAnchor.constraint(
                 equalTo: contentView.bottomAnchor
             ),
-            temperatureGraphLineView.heightAnchor.constraint(
+            temperatureGraphCurveView.heightAnchor.constraint(
                 equalToConstant: 60
             )
         ])

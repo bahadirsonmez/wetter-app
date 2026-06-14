@@ -82,29 +82,29 @@ final class TemperatureGraphViewTests: XCTestCase {
         )
 
         XCTAssertNil(
-            firstCell.temperatureGraphLineView.configuration?
+            firstCell.temperatureGraphCurveView.configuration?
                 .previousTemperature
         )
         XCTAssertEqual(
-            firstCell.temperatureGraphLineView.configuration?.nextTemperature,
+            firstCell.temperatureGraphCurveView.configuration?.nextTemperature,
             20
         )
         XCTAssertEqual(
-            secondCell.temperatureGraphLineView.configuration?
+            secondCell.temperatureGraphCurveView.configuration?
                 .previousTemperature,
             10
         )
         XCTAssertEqual(
-            secondCell.temperatureGraphLineView.configuration?.nextTemperature,
+            secondCell.temperatureGraphCurveView.configuration?.nextTemperature,
             30
         )
         XCTAssertEqual(
-            lastCell.temperatureGraphLineView.configuration?
+            lastCell.temperatureGraphCurveView.configuration?
                 .previousTemperature,
             20
         )
         XCTAssertNil(
-            lastCell.temperatureGraphLineView.configuration?.nextTemperature
+            lastCell.temperatureGraphCurveView.configuration?.nextTemperature
         )
     }
 
