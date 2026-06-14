@@ -30,6 +30,8 @@ final class LocationWeatherView: UIView {
     private func setupView() {
         backgroundColor = .systemBackground
         scrollView.alwaysBounceVertical = true
+        scrollView.contentInsetAdjustmentBehavior = .never
+        scrollView.delegate = self
         scrollView.refreshControl = refreshControl
 
         [
@@ -57,18 +59,21 @@ final class LocationWeatherView: UIView {
 
         let placeholderHeightConstraints = [
             summaryContainerView.heightAnchor.constraint(equalToConstant: 0),
-            forecastContainerView.heightAnchor.constraint(equalToConstant: 0),
-            tilesContainerView.heightAnchor.constraint(equalToConstant: 0)
+            forecastContainerView.heightAnchor.constraint(equalToConstant: 0)
         ]
         placeholderHeightConstraints.forEach {
             $0.priority = .defaultLow
         }
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
+            scrollView.topAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.topAnchor
+            ),
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scrollView.bottomAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.bottomAnchor
+            ),
 
             contentView.topAnchor.constraint(
                 equalTo: scrollView.contentLayoutGuide.topAnchor
@@ -84,6 +89,9 @@ final class LocationWeatherView: UIView {
             ),
             contentView.widthAnchor.constraint(
                 equalTo: scrollView.frameLayoutGuide.widthAnchor
+            ),
+            contentView.heightAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.heightAnchor
             ),
 
             summaryContainerView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -124,5 +132,20 @@ final class LocationWeatherView: UIView {
             loadingView.trailingAnchor.constraint(equalTo: trailingAnchor),
             loadingView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ] + placeholderHeightConstraints)
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension LocationWeatherView: UIScrollViewDelegate {
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView.contentOffset.y > .zero else {
+            return
+        }
+
+        // The screen is viewport-bound. Only negative pull distance is
+        // allowed so UIRefreshControl works without vertical content scroll.
+        scrollView.contentOffset.y = .zero
     }
 }

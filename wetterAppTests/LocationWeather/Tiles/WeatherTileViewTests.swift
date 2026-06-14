@@ -70,6 +70,44 @@ final class WeatherTileViewTests: XCTestCase {
         XCTAssertTrue(view.detailLabel.adjustsFontForContentSizeCategory)
     }
 
+    func testLayoutItemUsesWidestTextForPreferredWidth() {
+        let shortView = makeView()
+        shortView.configure(
+            with: makeViewData(
+                title: "Wind",
+                valueText: "2 m/s",
+                detailText: nil
+            )
+        )
+        let longView = makeView()
+        longView.configure(
+            with: makeViewData(
+                title: "Cloud coverage",
+                valueText: "100%",
+                detailText: nil
+            )
+        )
+
+        XCTAssertGreaterThan(
+            longView.makeLayoutItem().preferredWidth,
+            shortView.makeLayoutItem().preferredWidth
+        )
+    }
+
+    func testLayoutItemDetailIncreasesMinimumHeight() {
+        let viewWithoutDetail = makeView()
+        viewWithoutDetail.configure(with: makeViewData(detailText: nil))
+        let viewWithDetail = makeView()
+        viewWithDetail.configure(
+            with: makeViewData(detailText: "North-east")
+        )
+
+        XCTAssertGreaterThan(
+            viewWithDetail.makeLayoutItem().minimumHeight,
+            viewWithoutDetail.makeLayoutItem().minimumHeight
+        )
+    }
+
     func testTileViewUsesNoAutoLayoutConstraints() {
         let view = makeView()
         view.configure(with: makeViewData(detailText: "North-east"))
@@ -120,11 +158,15 @@ private extension WeatherTileViewTests {
         )
     }
 
-    func makeViewData(detailText: String?) -> WeatherTileViewData {
+    func makeViewData(
+        title: String = "Wind",
+        valueText: String = "2.5 m/s",
+        detailText: String?
+    ) -> WeatherTileViewData {
         WeatherTileViewData(
             id: .wind,
-            title: "Wind",
-            valueText: "2.5 m/s",
+            title: title,
+            valueText: valueText,
             detailText: detailText,
             symbolName: "wind"
         )
