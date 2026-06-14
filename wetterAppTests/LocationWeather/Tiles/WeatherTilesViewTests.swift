@@ -82,8 +82,13 @@ final class WeatherTilesViewTests: XCTestCase {
         let view = makeView(size: CGSize(width: 500, height: 180))
         view.configure(
             with: [
-                makeTile(title: "Wind", valueText: "2 m/s"),
                 makeTile(
+                    id: .wind,
+                    title: "Wind",
+                    valueText: "2 m/s"
+                ),
+                makeTile(
+                    id: .cloudCoverage,
                     title: "Cloud coverage",
                     valueText: "100%"
                 )
@@ -240,6 +245,18 @@ final class WeatherTilesViewTests: XCTestCase {
         )
     }
 
+    func testResizePreservesUserDefinedOrder() {
+        let view = configuredWideView()
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        resize(view, to: CGSize(width: 320, height: 300))
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.wind, .minimumTemperature, .maximumTemperature, .pressure]
+        )
+    }
+
     func testAccessibilitySizeRecalculatesMinimumHeight() {
         let view = makeView(size: CGSize(width: 390, height: 400))
         view.configure(with: makeTiles(count: 4))
@@ -281,6 +298,225 @@ final class WeatherTilesViewTests: XCTestCase {
         XCTAssertFalse(view.subviews.contains { $0 is UICollectionView })
         XCTAssertFalse(view.subviews.contains { $0 is UITableView })
     }
+
+    func testTilesHaveDragInteractions() {
+        let view = makeView(size: CGSize(width: 900, height: 600))
+        view.configure(with: makeTiles(count: 4))
+
+        XCTAssertTrue(
+            tileViews(in: view).allSatisfy {
+                $0.interactions.contains { $0 is UIDragInteraction }
+            }
+        )
+    }
+
+    func testTilesViewHasSingleDropInteraction() {
+        let view = makeView(size: CGSize(width: 900, height: 600))
+
+        XCTAssertEqual(
+            view.interactions.filter { $0 is UIDropInteraction }.count,
+            1
+        )
+    }
+
+    func testExternalDragSessionIsRejected() {
+        let view = makeView(size: CGSize(width: 900, height: 600))
+
+        XCTAssertFalse(view.acceptsDrop(isLocalSession: false))
+        XCTAssertTrue(view.acceptsDrop(isLocalSession: true))
+    }
+
+    func testDropMovesTileToDestinationIndex() {
+        let view = configuredWideView()
+
+        view.moveTile(
+            with: .minimumTemperature,
+            toVisibleIndex: 2
+        )
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.maximumTemperature, .pressure, .minimumTemperature, .wind]
+        )
+    }
+
+    func testMovingForwardNormalizesDestinationIndex() {
+        let view = configuredWideView()
+
+        view.moveTile(with: .minimumTemperature, toVisibleIndex: 3)
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.maximumTemperature, .pressure, .wind, .minimumTemperature]
+        )
+    }
+
+    func testMovingBackwardUpdatesOrder() {
+        let view = configuredWideView()
+
+        view.moveTile(with: .wind, toVisibleIndex: 1)
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.minimumTemperature, .wind, .maximumTemperature, .pressure]
+        )
+    }
+
+    func testDroppingAtSameIndexDoesNotChangeOrder() {
+        let view = configuredWideView()
+        let originalOrder = configuredIdentifiers(in: view)
+
+        view.moveTile(with: .pressure, toVisibleIndex: 2)
+
+        XCTAssertEqual(configuredIdentifiers(in: view), originalOrder)
+    }
+
+    func testReorderPreservesTileIdentifiers() {
+        let view = configuredWideView()
+        let originalIdentifiers = Set(configuredIdentifiers(in: view))
+
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        XCTAssertEqual(
+            Set(configuredIdentifiers(in: view)),
+            originalIdentifiers
+        )
+    }
+
+    func testRefreshPreservesUserDefinedOrder() {
+        let view = configuredWideView()
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        view.configure(with: makeTiles(count: 4, valuePrefix: "Refreshed"))
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.wind, .minimumTemperature, .maximumTemperature, .pressure]
+        )
+        XCTAssertEqual(tileViews(in: view)[0].valueLabel.text, "Refreshed 3")
+    }
+
+    func testNewTileIsAppendedToPreferredOrder() {
+        let view = configuredWideView()
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        view.configure(with: makeTiles(count: 5))
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [
+                .wind,
+                .minimumTemperature,
+                .maximumTemperature,
+                .pressure,
+                .visibility
+            ]
+        )
+    }
+
+    func testRemovedTileIsRemovedFromPreferredOrder() {
+        let view = configuredWideView()
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+        let remainingTiles = makeTiles(count: 4).filter {
+            $0.id != .maximumTemperature
+        }
+
+        view.configure(with: remainingTiles)
+
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.wind, .minimumTemperature, .pressure]
+        )
+    }
+
+    func testReorderReusesExistingTileViews() {
+        let view = configuredWideView()
+        let existingViews = tileViews(in: view)
+
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        XCTAssertEqual(tileViews(in: view).count, existingViews.count)
+        XCTAssertTrue(
+            zip(existingViews, tileViews(in: view)).allSatisfy { $0 === $1 }
+        )
+    }
+
+    func testReorderDoesNotUseAutoLayout() {
+        let view = configuredWideView()
+
+        view.moveTile(with: .wind, toVisibleIndex: 0)
+
+        XCTAssertTrue(view.constraints.isEmpty)
+        XCTAssertTrue(tileViews(in: view).allSatisfy(\.constraints.isEmpty))
+    }
+
+    func testHiddenTilesPreserveRelativeOrder() {
+        let view = makeView(size: CGSize(width: 500, height: 180))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let visibleCount = visibleTileViews(in: view).count
+        let hiddenOrder = Array(
+            configuredIdentifiers(in: view).dropFirst(visibleCount)
+        )
+
+        guard visibleCount > 1 else {
+            XCTFail("Test requires at least two visible tiles")
+            return
+        }
+
+        view.moveTile(
+            with: configuredIdentifiers(in: view)[1],
+            toVisibleIndex: 0
+        )
+
+        XCTAssertEqual(
+            Array(configuredIdentifiers(in: view).dropFirst(visibleCount)),
+            hiddenOrder
+        )
+    }
+
+    func testMiddleTileProvidesMoveEarlierAndLaterActions() {
+        let view = configuredWideView()
+        let actions = tileViews(in: view)[1].accessibilityCustomActions ?? []
+
+        XCTAssertEqual(
+            Set(actions.map(\.name)),
+            ["Move Earlier", "Move Later"]
+        )
+    }
+
+    func testFirstTileDoesNotProvideMoveEarlierAction() {
+        let view = configuredWideView()
+        let actionNames = tileViews(in: view)[0]
+            .accessibilityCustomActions?
+            .map(\.name) ?? []
+
+        XCTAssertFalse(actionNames.contains("Move Earlier"))
+        XCTAssertTrue(actionNames.contains("Move Later"))
+    }
+
+    func testLastTileDoesNotProvideMoveLaterAction() {
+        let view = configuredWideView()
+        let lastVisibleTile = try! XCTUnwrap(visibleTileViews(in: view).last)
+        let actionNames = lastVisibleTile.accessibilityCustomActions?
+            .map(\.name) ?? []
+
+        XCTAssertTrue(actionNames.contains("Move Earlier"))
+        XCTAssertFalse(actionNames.contains("Move Later"))
+    }
+
+    func testAccessibilityActionReordersTile() {
+        let view = configuredWideView()
+        let secondTile = tileViews(in: view)[1]
+
+        XCTAssertTrue(
+            secondTile.performMoveEarlierAccessibilityAction()
+        )
+        XCTAssertEqual(
+            configuredIdentifiers(in: view),
+            [.maximumTemperature, .minimumTemperature, .pressure, .wind]
+        )
+    }
 }
 
 // MARK: - Helpers
@@ -305,6 +541,19 @@ private extension WeatherTilesViewTests {
         view.frame.size = size
         view.setNeedsLayout()
         view.layoutIfNeeded()
+    }
+
+    func configuredWideView() -> WeatherTilesView {
+        let view = makeView(size: CGSize(width: 900, height: 600))
+        view.configure(with: makeTiles(count: 4))
+        view.layoutIfNeeded()
+        return view
+    }
+
+    func configuredIdentifiers(
+        in view: WeatherTilesView
+    ) -> [WeatherTileIdentifier] {
+        tileViews(in: view).compactMap(\.identifier)
     }
 
     func makeTiles(
