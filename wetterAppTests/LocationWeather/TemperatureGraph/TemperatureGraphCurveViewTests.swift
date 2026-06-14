@@ -21,8 +21,8 @@ final class TemperatureGraphCurveViewTests: XCTestCase {
         )
         
         XCTAssertEqual(geometry.currentPoint, CGPoint(x: 50, y: 40))
-        XCTAssertNil(geometry.leftSegment)
-        XCTAssertNil(geometry.rightSegment)
+        XCTAssertNotNil(geometry.leftSegment)
+        XCTAssertNotNil(geometry.rightSegment)
     }
 
     func testRightCurveEndsAtSharedCellBoundary() {
@@ -132,21 +132,21 @@ final class TemperatureGraphCurveViewTests: XCTestCase {
         XCTAssertEqual(geometry.rightSegment?.endPoint.y, y)
     }
 
-    func testFirstItemOmitsLeftCurve() {
+    func testFirstItemDrawsHorizontalLeftCurve() {
         let view = makeView(previousTemperature: nil, nextTemperature: 20)
-        XCTAssertNil(view.leftCurveLayer.path)
-        XCTAssertNil(view.leftFillLayer.path)
+        XCTAssertNotNil(view.leftCurveLayer.path)
+        XCTAssertNotNil(view.leftFillLayer.path)
         XCTAssertNotNil(view.rightCurveLayer.path)
         XCTAssertNotNil(view.rightFillLayer.path)
         XCTAssertNotNil(view.pointLayer.path)
     }
 
-    func testLastItemOmitsRightCurve() {
+    func testLastItemDrawsHorizontalRightCurve() {
         let view = makeView(previousTemperature: 10, nextTemperature: nil)
         XCTAssertNotNil(view.leftCurveLayer.path)
         XCTAssertNotNil(view.leftFillLayer.path)
-        XCTAssertNil(view.rightCurveLayer.path)
-        XCTAssertNil(view.rightFillLayer.path)
+        XCTAssertNotNil(view.rightCurveLayer.path)
+        XCTAssertNotNil(view.rightFillLayer.path)
         XCTAssertNotNil(view.pointLayer.path)
     }
 
