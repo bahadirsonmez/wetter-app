@@ -100,7 +100,7 @@ private extension HourlyForecastCell {
             ),
 
             temperatureGraphCurveView.topAnchor.constraint(
-                greaterThanOrEqualTo: labelsStackView.bottomAnchor,
+                equalTo: labelsStackView.bottomAnchor,
                 constant: 8
             ),
             temperatureGraphCurveView.leadingAnchor.constraint(
@@ -111,9 +111,6 @@ private extension HourlyForecastCell {
             ),
             temperatureGraphCurveView.bottomAnchor.constraint(
                 equalTo: contentView.bottomAnchor
-            ),
-            temperatureGraphCurveView.heightAnchor.constraint(
-                equalToConstant: 60
             )
         ])
     }

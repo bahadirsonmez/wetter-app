@@ -133,6 +133,13 @@ final class TemperatureGraphCurveView: UIView {
                 secondControlPoint: CGPoint(x: bounds.minX + w / 3.0, y: currentY),
                 endPoint: currentPoint
             )
+        } else {
+            leftSegment = TemperatureGraphCurveSegment(
+                startPoint: CGPoint(x: bounds.minX, y: currentY),
+                firstControlPoint: CGPoint(x: bounds.minX + w / 6.0, y: currentY),
+                secondControlPoint: CGPoint(x: bounds.minX + w / 3.0, y: currentY),
+                endPoint: currentPoint
+            )
         }
 
         var rightSegment: TemperatureGraphCurveSegment?
@@ -151,6 +158,13 @@ final class TemperatureGraphCurveView: UIView {
                 firstControlPoint: CGPoint(x: bounds.midX + w / 6.0, y: currentY),
                 secondControlPoint: CGPoint(x: bounds.midX + w / 3.0, y: (3.0 * currentY + nextY) / 4.0),
                 endPoint: CGPoint(x: bounds.maxX, y: (currentY + nextY) / 2.0)
+            )
+        } else {
+            rightSegment = TemperatureGraphCurveSegment(
+                startPoint: currentPoint,
+                firstControlPoint: CGPoint(x: bounds.midX + w / 6.0, y: currentY),
+                secondControlPoint: CGPoint(x: bounds.midX + w / 3.0, y: currentY),
+                endPoint: CGPoint(x: bounds.maxX, y: currentY)
             )
         }
 
