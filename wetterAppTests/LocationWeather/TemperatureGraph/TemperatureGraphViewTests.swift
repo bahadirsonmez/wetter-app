@@ -169,6 +169,34 @@ final class TemperatureGraphViewTests: XCTestCase {
 
         XCTAssertEqual(layout.invalidateLayoutCallCount, 1)
     }
+
+    func testBoundsResizeInvalidatesLayoutWithoutReloadingData() {
+        let layout = InvalidationTrackingLayout()
+        let collectionView = ReloadTrackingCollectionView(
+            frame: CGRect(x: 0, y: 0, width: 320, height: 200),
+            collectionViewLayout: layout
+        )
+        let sut = TemperatureGraphView(
+            frame: collectionView.frame,
+            collectionView: collectionView
+        )
+        sut.configure(with: makeViewData())
+        let reloadCountBeforeResize = collectionView.reloadDataCallCount
+        let invalidationCountBeforeResize = layout.invalidateLayoutCallCount
+
+        sut.frame.size.width = 700
+        sut.layoutIfNeeded()
+        sut.invalidateLayoutForBoundsChange()
+
+        XCTAssertEqual(
+            collectionView.reloadDataCallCount,
+            reloadCountBeforeResize
+        )
+        XCTAssertGreaterThan(
+            layout.invalidateLayoutCallCount,
+            invalidationCountBeforeResize
+        )
+    }
 }
 
 // MARK: - Helpers
