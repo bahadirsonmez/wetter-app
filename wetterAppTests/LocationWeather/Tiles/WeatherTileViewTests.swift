@@ -45,6 +45,7 @@ final class WeatherTileViewTests: XCTestCase {
 
         view.reset()
 
+        XCTAssertNil(view.identifier)
         XCTAssertNil(view.symbolImageView.image)
         XCTAssertNil(view.titleLabel.text)
         XCTAssertNil(view.valueLabel.text)
@@ -60,6 +61,14 @@ final class WeatherTileViewTests: XCTestCase {
 
         XCTAssertTrue(view.isAccessibilityElement)
         XCTAssertEqual(view.accessibilityLabel, "Wind, 2.5 m/s")
+    }
+
+    func testConfigureStoresTileIdentifier() {
+        let view = makeView()
+
+        view.configure(with: makeViewData(detailText: nil))
+
+        XCTAssertEqual(view.identifier, .wind)
     }
 
     func testTileViewSupportsDynamicType() {
