@@ -140,6 +140,25 @@ final class WeatherTileView: UIView {
         detailLabel.textColor = .secondaryLabel
         setNeedsLayout()
     }
+
+    func makeLayoutItem() -> WeatherTilesLayoutItem {
+        let textWidths = [
+            singleLineWidth(for: titleLabel),
+            singleLineWidth(for: valueLabel),
+            detailLabel.isHidden ? .zero : singleLineWidth(for: detailLabel)
+        ]
+        let preferredContentWidth = max(
+            Layout.symbolSize,
+            textWidths.max() ?? .zero
+        )
+
+        return WeatherTilesLayoutItem(
+            preferredWidth: ceil(
+                preferredContentWidth + Layout.contentInset * 2
+            ),
+            minimumHeight: ceil(minimumContentHeight())
+        )
+    }
 }
 
 // MARK: - Setup
@@ -233,6 +252,35 @@ private extension WeatherTileView {
                 )
             ).height
         )
+    }
+
+    func singleLineWidth(for label: UILabel) -> CGFloat {
+        guard let text = label.text, !text.isEmpty else {
+            return .zero
+        }
+
+        return ceil(
+            (text as NSString).size(
+                withAttributes: [.font: label.font as Any]
+            ).width
+        )
+    }
+
+    func minimumContentHeight() -> CGFloat {
+        let titleHeight = ceil(titleLabel.font.lineHeight)
+        let valueHeight = ceil(valueLabel.font.lineHeight)
+        let detailHeight = detailLabel.isHidden
+            ? .zero
+            : ceil(detailLabel.font.lineHeight) + Layout.titleSpacing
+
+        return Layout.contentInset
+            + Layout.symbolSize
+            + Layout.valueSpacing
+            + valueHeight
+            + Layout.detailSpacing
+            + detailHeight
+            + titleHeight
+            + Layout.contentInset
     }
 
     func clearFrames() {

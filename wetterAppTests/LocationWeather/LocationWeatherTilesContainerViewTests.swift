@@ -32,7 +32,7 @@ final class LocationWeatherTilesContainerViewTests: XCTestCase {
         )
     }
 
-    func testIntrinsicHeightUsesTilesViewContentHeight() {
+    func testContainerDoesNotProvideIntrinsicHeight() {
         let container = LocationWeatherTilesContainerView(
             frame: CGRect(x: 0, y: 0, width: 390, height: 390)
         )
@@ -40,7 +40,10 @@ final class LocationWeatherTilesContainerViewTests: XCTestCase {
 
         container.layoutIfNeeded()
 
-        XCTAssertEqual(container.intrinsicContentSize.height, 390)
+        XCTAssertEqual(
+            container.intrinsicContentSize.height,
+            UIView.noIntrinsicMetric
+        )
     }
 }
 

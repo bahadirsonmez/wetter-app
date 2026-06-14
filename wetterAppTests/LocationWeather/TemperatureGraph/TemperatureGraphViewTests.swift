@@ -6,6 +6,13 @@ import XCTest
 @MainActor
 final class TemperatureGraphViewTests: XCTestCase {
 
+    func testCollectionViewKeepsHorizontalScrollingEnabled() {
+        let context = makeSUT()
+
+        XCTAssertTrue(context.collectionView.alwaysBounceHorizontal)
+        XCTAssertFalse(context.collectionView.showsHorizontalScrollIndicator)
+    }
+
     func testConfigureReloadsCollectionViewForChangedViewData() {
         let context = makeSUT()
 

@@ -15,74 +15,56 @@ struct WeatherTilesLayout {
     // MARK: - Layout
 
     func makeLayout(
-        availableWidth: CGFloat,
-        itemCount: Int,
-        contentSizeCategory: UIContentSizeCategory
+        availableSize: CGSize,
+        items: [WeatherTilesLayoutItem]
     ) -> WeatherTilesLayoutResult {
-        // Negative widths and item counts are treated as empty input so the
-        // geometry remains safe while a view is transitioning between sizes.
-        let width = max(.zero, availableWidth)
-        let layoutConfiguration = configuration(for: width)
-
-        // Width selects both the base column count and how many tiles are
-        // allowed on screen. Accessibility text only reduces the columns;
-        // it does not hide additional weather data.
-        let columnCount = adjustedColumnCount(
-            layoutConfiguration.columnCount,
-            contentSizeCategory: contentSizeCategory
+        let size = CGSize(
+            width: max(.zero, availableSize.width),
+            height: max(.zero, availableSize.height)
         )
-        let visibleItemCount = min(
-            max(.zero, itemCount),
-            layoutConfiguration.maximumItemCount
-        )
+        let usableSize = usableSize(in: size)
 
-        guard visibleItemCount > 0 else {
+        guard
+            !items.isEmpty,
+            usableSize.width > .zero,
+            usableSize.height > .zero
+        else {
             return WeatherTilesLayoutResult(
                 itemFrames: [],
-                contentSize: CGSize(width: width, height: .zero),
+                contentSize: size,
                 visibleItemCount: .zero
             )
         }
 
-        let tileWidth = itemWidth(
-            availableWidth: width,
-            columnCount: columnCount
+        let visibleLayout = longestVisibleLayout(
+            items: items,
+            usableSize: usableSize
         )
-        let itemFrames = (0..<visibleItemCount).map { itemIndex in
-            // Modulo selects the column and integer division advances the row.
-            // For three columns: indices 0, 1, 2 are row 0; index 3 is row 1.
-            let column = itemIndex % columnCount
-            let row = itemIndex / columnCount
-
-            // Height deliberately equals width so every tile remains square.
-            return CGRect(
-                x: metrics.contentInsets.left
-                    + CGFloat(column)
-                    * (tileWidth + metrics.horizontalSpacing),
-                y: metrics.contentInsets.top
-                    + CGFloat(row)
-                    * (tileWidth + metrics.verticalSpacing),
-                width: tileWidth,
-                height: tileWidth
+        guard !visibleLayout.rows.isEmpty else {
+            return WeatherTilesLayoutResult(
+                itemFrames: [],
+                contentSize: size,
+                visibleItemCount: .zero
             )
         }
 
-        // Ceiling accounts for a partially filled final row.
-        let rowCount = Int(
-            ceil(Double(visibleItemCount) / Double(columnCount))
+        // Every visible row shares the available height equally. Minimum tile
+        // heights were already validated while selecting the visible prefix.
+        let rowHeight = (
+            usableSize.height
+                - CGFloat(visibleLayout.rows.count - 1)
+                * metrics.verticalSpacing
+        ) / CGFloat(visibleLayout.rows.count)
+        let frames = makeFrames(
+            rows: visibleLayout.rows,
+            rowHeight: rowHeight,
+            usableWidth: usableSize.width
         )
 
-        // Content height includes the tile rows, only the spaces between rows,
-        // and the outer vertical insets.
-        let contentHeight = metrics.contentInsets.top
-            + CGFloat(rowCount) * tileWidth
-            + CGFloat(max(.zero, rowCount - 1)) * metrics.verticalSpacing
-            + metrics.contentInsets.bottom
-
         return WeatherTilesLayoutResult(
-            itemFrames: itemFrames,
-            contentSize: CGSize(width: width, height: contentHeight),
-            visibleItemCount: visibleItemCount
+            itemFrames: frames,
+            contentSize: size,
+            visibleItemCount: frames.count
         )
     }
 }
@@ -91,62 +73,153 @@ struct WeatherTilesLayout {
 
 private extension WeatherTilesLayout {
 
-    struct Configuration {
-        let columnCount: Int
-        let maximumItemCount: Int
+    struct VisibleLayout {
+        let rows: [[WeatherTilesLayoutItem]]
     }
 
-    func configuration(for availableWidth: CGFloat) -> Configuration {
-        // These breakpoints are based on the complete container width. Insets
-        // are applied later when the exact square tile width is calculated.
-        switch availableWidth {
-        case ..<500:
-            Configuration(
-                columnCount: 2,
-                maximumItemCount: metrics.compactMaximumItemCount
+    func usableSize(in availableSize: CGSize) -> CGSize {
+        CGSize(
+            width: max(
+                .zero,
+                availableSize.width
+                    - metrics.contentInsets.left
+                    - metrics.contentInsets.right
+            ),
+            height: max(
+                .zero,
+                availableSize.height
+                    - metrics.contentInsets.top
+                    - metrics.contentInsets.bottom
             )
-        case ..<900:
-            Configuration(
-                columnCount: 3,
-                maximumItemCount: metrics.mediumMaximumItemCount
-            )
-        default:
-            Configuration(
-                columnCount: 4,
-                maximumItemCount: metrics.wideMaximumItemCount
-            )
-        }
-    }
-
-    func adjustedColumnCount(
-        _ columnCount: Int,
-        contentSizeCategory: UIContentSizeCategory
-    ) -> Int {
-        guard contentSizeCategory.isAccessibilityCategory else {
-            return columnCount
-        }
-
-        // Fewer columns provide more room for enlarged text. Keeping at least
-        // one column prevents division by zero for compact layouts.
-        return max(1, columnCount - 1)
-    }
-
-    func itemWidth(
-        availableWidth: CGFloat,
-        columnCount: Int
-    ) -> CGFloat {
-        let horizontalInsets = metrics.contentInsets.left
-            + metrics.contentInsets.right
-        let totalSpacing = CGFloat(max(.zero, columnCount - 1))
-            * metrics.horizontalSpacing
-
-        // Insets and inter-column spaces do not belong to a tile. The
-        // remaining width is shared equally across all columns.
-        let usableWidth = max(
-            .zero,
-            availableWidth - horizontalInsets - totalSpacing
         )
+    }
 
-        return usableWidth / CGFloat(columnCount)
+    func longestVisibleLayout(
+        items: [WeatherTilesLayoutItem],
+        usableSize: CGSize
+    ) -> VisibleLayout {
+        var bestLayout = VisibleLayout(rows: [])
+
+        // Preserve presentation order by testing progressively longer
+        // prefixes and keeping the last one that fits the viewport.
+        for itemCount in 1...items.count {
+            let candidateItems = Array(items.prefix(itemCount))
+            let rows = makeRows(
+                items: candidateItems,
+                usableWidth: usableSize.width
+            )
+
+            guard fitsVertically(rows: rows, usableHeight: usableSize.height) else {
+                break
+            }
+
+            bestLayout = VisibleLayout(rows: rows)
+        }
+
+        return bestLayout
+    }
+
+    func makeRows(
+        items: [WeatherTilesLayoutItem],
+        usableWidth: CGFloat
+    ) -> [[WeatherTilesLayoutItem]] {
+        var rows: [[WeatherTilesLayoutItem]] = []
+        var currentRow: [WeatherTilesLayoutItem] = []
+        var currentWidth: CGFloat = .zero
+
+        for item in items {
+            // A tile wider than the viewport occupies a row by itself and is
+            // clamped so its frame never exceeds the available width.
+            let preferredWidth = min(
+                max(.zero, item.preferredWidth),
+                usableWidth
+            )
+            let requiredWidth = currentRow.isEmpty
+                ? preferredWidth
+                : metrics.horizontalSpacing + preferredWidth
+
+            // Rows are built greedily: move the next tile to a new row when
+            // its measured minimum width no longer fits.
+            if !currentRow.isEmpty, currentWidth + requiredWidth > usableWidth {
+                rows.append(currentRow)
+                currentRow = []
+                currentWidth = .zero
+            }
+
+            currentRow.append(item)
+            currentWidth += currentRow.count == 1
+                ? preferredWidth
+                : metrics.horizontalSpacing + preferredWidth
+        }
+
+        if !currentRow.isEmpty {
+            rows.append(currentRow)
+        }
+
+        return rows
+    }
+
+    func fitsVertically(
+        rows: [[WeatherTilesLayoutItem]],
+        usableHeight: CGFloat
+    ) -> Bool {
+        guard !rows.isEmpty else {
+            return true
+        }
+
+        let minimumRowHeight = rows
+            .flatMap { $0 }
+            .map(\.minimumHeight)
+            .max() ?? .zero
+
+        // A common minimum row height keeps all rows aligned while ensuring
+        // the tallest visible tile can display its content.
+        let requiredHeight = CGFloat(rows.count) * minimumRowHeight
+            + CGFloat(rows.count - 1) * metrics.verticalSpacing
+
+        return requiredHeight <= usableHeight
+    }
+
+    func makeFrames(
+        rows: [[WeatherTilesLayoutItem]],
+        rowHeight: CGFloat,
+        usableWidth: CGFloat
+    ) -> [CGRect] {
+        var frames: [CGRect] = []
+        var y = metrics.contentInsets.top
+
+        for row in rows {
+            let preferredWidths = row.map {
+                min(max(.zero, $0.preferredWidth), usableWidth)
+            }
+            let spacingWidth = CGFloat(max(.zero, row.count - 1))
+                * metrics.horizontalSpacing
+            let remainingWidth = max(
+                .zero,
+                usableWidth - preferredWidths.reduce(.zero, +) - spacingWidth
+            )
+
+            // Distribute each row's unused width evenly so the row fills the
+            // container while retaining content-driven width differences.
+            let additionalWidth = remainingWidth / CGFloat(row.count)
+            var x = metrics.contentInsets.left
+
+            for preferredWidth in preferredWidths {
+                let width = preferredWidth + additionalWidth
+                frames.append(
+                    CGRect(
+                        x: x,
+                        y: y,
+                        width: width,
+                        height: rowHeight
+                    )
+                )
+                x += width + metrics.horizontalSpacing
+            }
+
+            y += rowHeight + metrics.verticalSpacing
+        }
+
+        return frames
     }
 }
