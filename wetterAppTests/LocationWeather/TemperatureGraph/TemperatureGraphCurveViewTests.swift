@@ -135,14 +135,18 @@ final class TemperatureGraphCurveViewTests: XCTestCase {
     func testFirstItemOmitsLeftCurve() {
         let view = makeView(previousTemperature: nil, nextTemperature: 20)
         XCTAssertNil(view.leftCurveLayer.path)
+        XCTAssertNil(view.leftFillLayer.path)
         XCTAssertNotNil(view.rightCurveLayer.path)
+        XCTAssertNotNil(view.rightFillLayer.path)
         XCTAssertNotNil(view.pointLayer.path)
     }
 
     func testLastItemOmitsRightCurve() {
         let view = makeView(previousTemperature: 10, nextTemperature: nil)
         XCTAssertNotNil(view.leftCurveLayer.path)
+        XCTAssertNotNil(view.leftFillLayer.path)
         XCTAssertNil(view.rightCurveLayer.path)
+        XCTAssertNil(view.rightFillLayer.path)
         XCTAssertNotNil(view.pointLayer.path)
     }
 
@@ -152,6 +156,8 @@ final class TemperatureGraphCurveViewTests: XCTestCase {
         XCTAssertNil(view.configuration)
         XCTAssertNil(view.leftCurveLayer.path)
         XCTAssertNil(view.rightCurveLayer.path)
+        XCTAssertNil(view.leftFillLayer.path)
+        XCTAssertNil(view.rightFillLayer.path)
         XCTAssertNil(view.pointLayer.path)
     }
 

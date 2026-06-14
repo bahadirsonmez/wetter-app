@@ -9,8 +9,8 @@ final class HourlyForecastCellTests: XCTestCase {
         let cell = makeCell()
 
         cell.configure(
-            with: makeViewData(conditionText: "Moderate rain"),
-            previousTemperature: 18,
+            with: makeViewData(),
+            previousTemperature: nil,
             nextTemperature: 22,
             minimumTemperature: 10,
             maximumTemperature: 30
@@ -18,29 +18,15 @@ final class HourlyForecastCellTests: XCTestCase {
 
         XCTAssertEqual(cell.timeLabel.text, "15:00")
         XCTAssertEqual(cell.temperatureLabel.text, "20°C")
-        XCTAssertEqual(cell.conditionLabel.text, "Moderate rain")
-        XCTAssertFalse(cell.conditionLabel.isHidden)
     }
 
-    func testConfigureWithoutConditionHidesConditionLabel() {
-        let cell = makeCell()
 
-        cell.configure(
-            with: makeViewData(conditionText: nil),
-            previousTemperature: nil,
-            nextTemperature: nil,
-            minimumTemperature: 20,
-            maximumTemperature: 20
-        )
-
-        XCTAssertTrue(cell.conditionLabel.isHidden)
-    }
 
     func testConfigurePassesGraphTemperaturesToLineView() {
         let cell = makeCell()
 
         cell.configure(
-            with: makeViewData(conditionText: nil),
+            with: makeViewData(),
             previousTemperature: 18,
             nextTemperature: 22,
             minimumTemperature: 10,
@@ -62,7 +48,7 @@ final class HourlyForecastCellTests: XCTestCase {
     func testPrepareForReuseClearsContentAndGraph() {
         let cell = makeCell()
         cell.configure(
-            with: makeViewData(conditionText: "Moderate rain"),
+            with: makeViewData(),
             previousTemperature: 18,
             nextTemperature: 22,
             minimumTemperature: 10,
@@ -73,7 +59,6 @@ final class HourlyForecastCellTests: XCTestCase {
 
         XCTAssertNil(cell.timeLabel.text)
         XCTAssertNil(cell.temperatureLabel.text)
-        XCTAssertNil(cell.conditionLabel.text)
         XCTAssertNil(cell.temperatureGraphCurveView.configuration)
         XCTAssertNil(cell.accessibilityLabel)
     }
@@ -89,14 +74,11 @@ private extension HourlyForecastCellTests {
         )
     }
 
-    func makeViewData(
-        conditionText: String?
-    ) -> HourlyForecastItemViewData {
+    func makeViewData() -> HourlyForecastItemViewData {
         HourlyForecastItemViewData(
             id: 1_749_827_600,
             timeText: "15:00",
             temperatureText: "20°C",
-            conditionText: conditionText,
             temperatureValue: 20
         )
     }

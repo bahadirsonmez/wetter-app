@@ -145,7 +145,6 @@ final class LocationWeatherViewControllerTests: XCTestCase {
                             id: 1_781_398_800,
                             timeText: "15:00",
                             temperatureText: "28°C",
-                            conditionText: "Clear sky",
                             temperatureValue: 28
                         )
                     ]
