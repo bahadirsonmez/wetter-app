@@ -48,7 +48,7 @@ final class HourlyForecastCellTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            cell.temperatureGraphLineView.configuration,
+            cell.temperatureGraphCurveView.configuration,
             .init(
                 currentTemperature: 20,
                 previousTemperature: 18,
@@ -74,7 +74,7 @@ final class HourlyForecastCellTests: XCTestCase {
         XCTAssertNil(cell.timeLabel.text)
         XCTAssertNil(cell.temperatureLabel.text)
         XCTAssertNil(cell.conditionLabel.text)
-        XCTAssertNil(cell.temperatureGraphLineView.configuration)
+        XCTAssertNil(cell.temperatureGraphCurveView.configuration)
         XCTAssertNil(cell.accessibilityLabel)
     }
 }
