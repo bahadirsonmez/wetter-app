@@ -36,6 +36,8 @@ private extension ForecastDayHeaderView {
     func setupView() {
         titleLabel.font = .preferredFont(forTextStyle: .headline)
         titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.75
         titleLabel.textColor = .label
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 

@@ -13,15 +13,22 @@ final class TemperatureGraphView: UIView {
     // MARK: - Properties
 
     private var viewData: HourlyForecastViewData?
+    private let baseLayoutMetrics: TemperatureGraphLayoutMetrics?
 
     // MARK: - Initialization
 
     override init(frame: CGRect) {
+        let layout = TemperatureGraphLayout()
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: TemperatureGraphLayout()
+            collectionViewLayout: layout
         )
+        baseLayoutMetrics = layout.metrics
         super.init(frame: frame)
+        setContentCompressionResistancePriority(
+            UILayoutPriority(751),
+            for: .vertical
+        )
         setupView()
     }
 
@@ -30,7 +37,15 @@ final class TemperatureGraphView: UIView {
         collectionView: UICollectionView
     ) {
         self.collectionView = collectionView
+        baseLayoutMetrics = (
+            collectionView.collectionViewLayout
+                as? TemperatureGraphLayout
+        )?.metrics
         super.init(frame: frame)
+        setContentCompressionResistancePriority(
+            UILayoutPriority(751),
+            for: .vertical
+        )
         setupView()
     }
 
@@ -66,9 +81,17 @@ final class TemperatureGraphView: UIView {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
-        if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
-            collectionView.collectionViewLayout.invalidateLayout()
+        guard traitCollection.preferredContentSizeCategory
+            != previousTraitCollection?.preferredContentSizeCategory
+            || traitCollection.verticalSizeClass
+                != previousTraitCollection?.verticalSizeClass else {
+            return
         }
+
+        updateLayout(
+            for: traitCollection.preferredContentSizeCategory,
+            verticalSizeClass: traitCollection.verticalSizeClass
+        )
     }
 
     // MARK: - Configuration
@@ -93,6 +116,43 @@ final class TemperatureGraphView: UIView {
 
     func invalidateLayoutForBoundsChange() {
         collectionView.collectionViewLayout.invalidateLayout()
+    }
+
+    func updateLayout(
+        for contentSizeCategory: UIContentSizeCategory
+    ) {
+        updateLayout(
+            for: contentSizeCategory,
+            verticalSizeClass: traitCollection.verticalSizeClass
+        )
+    }
+
+    func updateLayout(
+        for contentSizeCategory: UIContentSizeCategory,
+        verticalSizeClass: UIUserInterfaceSizeClass?
+    ) {
+        guard
+            let layout = collectionView.collectionViewLayout
+                as? TemperatureGraphLayout,
+            let baseLayoutMetrics
+        else {
+            collectionView.collectionViewLayout.invalidateLayout()
+            return
+        }
+
+        var metrics = baseLayoutMetrics.scaled(
+            for: contentSizeCategory
+        )
+        if verticalSizeClass == .compact {
+            metrics = metrics.compactedVertically()
+        }
+
+        guard layout.metrics != metrics else {
+            return
+        }
+
+        layout.metrics = metrics
+        invalidateIntrinsicContentSize()
     }
 }
 

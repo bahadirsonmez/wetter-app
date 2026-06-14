@@ -15,7 +15,7 @@ final class LocationWeatherTilesContainerView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setContentCompressionResistancePriority(
-            UILayoutPriority(751),
+            .defaultLow,
             for: .vertical
         )
         addSubview(tilesView)

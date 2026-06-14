@@ -2,6 +2,8 @@ import UIKit
 
 final class LocationWeatherView: UIView {
 
+    private static let compactHeightThreshold: CGFloat = 500
+
     // MARK: - Subviews
 
     let scrollView = UIScrollView()
@@ -29,6 +31,20 @@ final class LocationWeatherView: UIView {
     // MARK: - Lifecycle
 
     override func layoutSubviews() {
+        let verticalSizeClass: UIUserInterfaceSizeClass? =
+            traitCollection.verticalSizeClass == .compact
+                || bounds.height < Self.compactHeightThreshold
+            ? .compact
+            : traitCollection.verticalSizeClass
+        summaryContainerView.summaryView.updateLayout(
+            for: traitCollection.horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        forecastContainerView.temperatureGraphView.updateLayout(
+            for: traitCollection.preferredContentSizeCategory,
+            verticalSizeClass: verticalSizeClass
+        )
+
         super.layoutSubviews()
 
         let currentBoundsSize = bounds.size

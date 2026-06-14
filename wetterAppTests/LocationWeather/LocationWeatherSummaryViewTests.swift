@@ -72,6 +72,19 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
         XCTAssertFalse(view.humidityValueLabel.isHidden)
     }
 
+    func testCompactHeightHidesAdditionalInformation() {
+        let view = LocationWeatherSummaryView()
+
+        view.updateLayout(
+            for: .regular,
+            verticalSizeClass: .compact
+        )
+
+        XCTAssertTrue(view.feelsLikeLabel.isHidden)
+        XCTAssertTrue(view.humidityTitleLabel.isHidden)
+        XCTAssertTrue(view.humidityValueLabel.isHidden)
+    }
+
     func testLabelsSupportDynamicType() {
         let view = LocationWeatherSummaryView()
         let labels = [
