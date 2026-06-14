@@ -185,4 +185,21 @@ final class LocationWeatherViewTests: XCTestCase {
                 === view.tilesContainerView
         )
     }
+
+    func testBoundsSizeChangeInvalidatesDependentLayouts() {
+        let view = LocationWeatherView(
+            frame: CGRect(x: 0, y: 0, width: 390, height: 844)
+        )
+        var tilesInvalidationCount = 0
+        view.tilesContainerView.tilesView.onMinimumRequiredHeightChange = {
+            tilesInvalidationCount += 1
+        }
+        view.layoutIfNeeded()
+
+        view.frame.size = CGSize(width: 700, height: 600)
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
+        XCTAssertEqual(tilesInvalidationCount, 1)
+    }
 }

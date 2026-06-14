@@ -118,6 +118,11 @@ final class WeatherTilesView: UIView {
             items: items
         )
     }
+
+    func invalidateLayoutForBoundsChange() {
+        setNeedsLayout()
+        onMinimumRequiredHeightChange?()
+    }
 }
 
 // MARK: - View Management

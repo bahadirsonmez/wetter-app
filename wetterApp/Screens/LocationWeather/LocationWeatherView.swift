@@ -12,6 +12,7 @@ final class LocationWeatherView: UIView {
     let loadingView = LocationWeatherLoadingView()
 
     private let contentView = UIView()
+    private var previousBoundsSize: CGSize = .zero
 
     // MARK: - Initialization
 
@@ -23,6 +24,29 @@ final class LocationWeatherView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Lifecycle
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        let currentBoundsSize = bounds.size
+        defer {
+            previousBoundsSize = currentBoundsSize
+        }
+
+        guard
+            previousBoundsSize != .zero,
+            previousBoundsSize != currentBoundsSize
+        else {
+            return
+        }
+
+        forecastContainerView.temperatureGraphView
+            .invalidateLayoutForBoundsChange()
+        tilesContainerView.tilesView
+            .invalidateLayoutForBoundsChange()
     }
 
     // MARK: - Setup
