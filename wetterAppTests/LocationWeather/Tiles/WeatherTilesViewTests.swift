@@ -143,6 +143,18 @@ final class WeatherTilesViewTests: XCTestCase {
         )
     }
 
+    func testInvalidateLayoutForBoundsChangeNotifiesHeightChange() {
+        let view = makeView(size: CGSize(width: 390, height: 400))
+        var notificationCount = 0
+        view.onMinimumRequiredHeightChange = {
+            notificationCount += 1
+        }
+
+        view.invalidateLayoutForBoundsChange()
+
+        XCTAssertEqual(notificationCount, 1)
+    }
+
     func testResetHidesAndReusesTileViews() {
         let view = makeView(size: CGSize(width: 900, height: 600))
         view.configure(with: makeTiles(count: 4))
