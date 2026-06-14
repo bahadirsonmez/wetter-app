@@ -9,6 +9,8 @@ final class WeatherTilesView: UIView {
     private var tiles: [WeatherTileViewData] = []
     private var tileViews: [WeatherTileView] = []
 
+    var onMinimumRequiredHeightChange: (() -> Void)?
+
     // MARK: - Initialization
 
     override init(frame: CGRect) {
@@ -55,6 +57,7 @@ final class WeatherTilesView: UIView {
         }
 
         setNeedsLayout()
+        onMinimumRequiredHeightChange?()
     }
 
     // MARK: - Configuration
@@ -78,6 +81,7 @@ final class WeatherTilesView: UIView {
         }
 
         setNeedsLayout()
+        onMinimumRequiredHeightChange?()
     }
 
     func reset() {
@@ -92,6 +96,27 @@ final class WeatherTilesView: UIView {
             $0.frame = .zero
         }
         setNeedsLayout()
+        onMinimumRequiredHeightChange?()
+    }
+
+    func minimumRequiredHeight(
+        for width: CGFloat,
+        contentSizeCategory: UIContentSizeCategory
+    ) -> CGFloat {
+        guard !tiles.isEmpty else {
+            return .zero
+        }
+
+        let items = tileViews.prefix(tiles.count).map {
+            $0.makeLayoutItem(
+                contentSizeCategory: contentSizeCategory
+            )
+        }
+
+        return layout.minimumRequiredHeight(
+            for: width,
+            items: items
+        )
     }
 }
 
