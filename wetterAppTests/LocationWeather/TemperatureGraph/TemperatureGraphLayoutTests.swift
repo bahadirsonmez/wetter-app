@@ -146,6 +146,72 @@ final class TemperatureGraphLayoutTests: XCTestCase {
         )
     }
 
+    func testBoundsOriginChangeInvalidatesOnlyStickyHeaders() throws {
+        let context = makeSUT(sectionItemCounts: [2, 1])
+        context.layout.prepare()
+        let itemBeforeScroll = try XCTUnwrap(
+            context.layout.layoutAttributesForItem(
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+        let newBounds = context.collectionView.bounds.offsetBy(
+            dx: 20,
+            dy: 0
+        )
+        let invalidationContext = try XCTUnwrap(
+            context.layout.invalidationContext(
+                forBoundsChange: newBounds
+            ) as? TemperatureGraphLayoutInvalidationContext
+        )
+
+        context.layout.invalidateLayout(with: invalidationContext)
+        context.collectionView.bounds = newBounds
+        context.layout.prepare()
+
+        let itemAfterScroll = try XCTUnwrap(
+            context.layout.layoutAttributesForItem(
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+        XCTAssertTrue(invalidationContext.invalidatesStickyHeadersOnly)
+        XCTAssertFalse(invalidationContext.invalidatesGeometry)
+        XCTAssertTrue(itemBeforeScroll === itemAfterScroll)
+    }
+
+    func testBoundsSizeChangeRebuildsCachedGeometry() throws {
+        let context = makeSUT(sectionItemCounts: [2, 1])
+        context.layout.prepare()
+        let itemBeforeResize = try XCTUnwrap(
+            context.layout.layoutAttributesForItem(
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+        var newBounds = context.collectionView.bounds
+        newBounds.size.width = 200
+        let invalidationContext = try XCTUnwrap(
+            context.layout.invalidationContext(
+                forBoundsChange: newBounds
+            ) as? TemperatureGraphLayoutInvalidationContext
+        )
+
+        context.layout.invalidateLayout(with: invalidationContext)
+        context.collectionView.bounds = newBounds
+        context.layout.prepare()
+
+        let itemAfterResize = try XCTUnwrap(
+            context.layout.layoutAttributesForItem(
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+        XCTAssertTrue(invalidationContext.invalidatesGeometry)
+        XCTAssertFalse(invalidationContext.invalidatesStickyHeadersOnly)
+        XCTAssertFalse(itemBeforeResize === itemAfterResize)
+        XCTAssertEqual(
+            context.layout.collectionViewContentSize.height,
+            metrics.contentHeight
+        )
+    }
+
     func testUnchangedBoundsDoNotInvalidateLayout() {
         let context = makeSUT(sectionItemCounts: [1])
 
