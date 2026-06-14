@@ -8,7 +8,6 @@ final class HourlyForecastViewDataTests: XCTestCase {
             id: 1_781_179_200,
             timeText: "12:00",
             temperatureText: "24°C",
-            conditionText: "Light rain",
             temperatureValue: 24.1
         )
         let day = HourlyForecastDayViewData(

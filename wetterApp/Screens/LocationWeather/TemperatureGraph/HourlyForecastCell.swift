@@ -7,7 +7,6 @@ final class HourlyForecastCell: UICollectionViewCell {
 
     let timeLabel = UILabel()
     let temperatureLabel = UILabel()
-    let conditionLabel = UILabel()
     let temperatureGraphCurveView = TemperatureGraphCurveView()
 
     private let labelsStackView = UIStackView()
@@ -26,8 +25,6 @@ final class HourlyForecastCell: UICollectionViewCell {
         super.prepareForReuse()
         timeLabel.text = nil
         temperatureLabel.text = nil
-        conditionLabel.text = nil
-        conditionLabel.isHidden = false
         temperatureGraphCurveView.reset()
         accessibilityLabel = nil
     }
@@ -41,8 +38,6 @@ final class HourlyForecastCell: UICollectionViewCell {
     ) {
         timeLabel.text = viewData.timeText
         temperatureLabel.text = viewData.temperatureText
-        conditionLabel.text = viewData.conditionText
-        conditionLabel.isHidden = viewData.conditionText == nil
 
         temperatureGraphCurveView.configure(
             currentTemperature: viewData.temperatureValue,
@@ -54,8 +49,7 @@ final class HourlyForecastCell: UICollectionViewCell {
 
         accessibilityLabel = [
             viewData.timeText,
-            viewData.temperatureText,
-            viewData.conditionText
+            viewData.temperatureText
         ].compactMap { $0 }.joined(separator: ", ")
     }
 }
@@ -67,22 +61,19 @@ private extension HourlyForecastCell {
     func setupView() {
         isAccessibilityElement = true
 
+        contentView.layer.borderColor = UIColor.label.cgColor
+        contentView.layer.borderWidth = 1
+
         configure(
             timeLabel,
             font: .preferredFont(forTextStyle: .caption1),
-            color: .secondaryLabel
+            color: .label
         )
         configure(
             temperatureLabel,
             font: .preferredFont(forTextStyle: .headline),
             color: .label
         )
-        configure(
-            conditionLabel,
-            font: .preferredFont(forTextStyle: .caption2),
-            color: .secondaryLabel
-        )
-        conditionLabel.numberOfLines = 2
 
         labelsStackView.axis = .vertical
         labelsStackView.alignment = .center
@@ -90,7 +81,6 @@ private extension HourlyForecastCell {
         labelsStackView.translatesAutoresizingMaskIntoConstraints = false
         labelsStackView.addArrangedSubview(timeLabel)
         labelsStackView.addArrangedSubview(temperatureLabel)
-        labelsStackView.addArrangedSubview(conditionLabel)
 
         temperatureGraphCurveView.translatesAutoresizingMaskIntoConstraints =
             false

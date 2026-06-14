@@ -33,7 +33,6 @@ enum LocationWeatherViewDataFixture {
                         id: 1_781_312_400,
                         timeText: "15:00",
                         temperatureText: "24°C",
-                        conditionText: "Moderate rain",
                         temperatureValue: 24
                     )
                 ]

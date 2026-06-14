@@ -252,7 +252,6 @@ private extension TemperatureGraphViewTests {
             id: id,
             timeText: "15:00",
             temperatureText: "\(Int(temperature))°C",
-            conditionText: "Clear sky",
             temperatureValue: temperature
         )
     }
