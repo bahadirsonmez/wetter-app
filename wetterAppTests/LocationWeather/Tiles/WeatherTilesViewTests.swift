@@ -6,7 +6,7 @@ import XCTest
 final class WeatherTilesViewTests: XCTestCase {
 
     func testConfigureCreatesRequiredTileViews() {
-        let view = makeView(width: 900)
+        let view = makeView(size: CGSize(width: 900, height: 600))
 
         view.configure(with: makeTiles(count: 8))
         view.layoutIfNeeded()
@@ -19,7 +19,7 @@ final class WeatherTilesViewTests: XCTestCase {
     }
 
     func testConfigureReusesExistingTileViews() {
-        let view = makeView(width: 900)
+        let view = makeView(size: CGSize(width: 900, height: 600))
         view.configure(with: makeTiles(count: 4))
         let initialViews = tileViews(in: view)
 
@@ -35,7 +35,7 @@ final class WeatherTilesViewTests: XCTestCase {
     }
 
     func testConfigureWithSameDataDoesNotCreateSubviews() {
-        let view = makeView(width: 900)
+        let view = makeView(size: CGSize(width: 900, height: 600))
         let tiles = makeTiles(count: 4)
         view.configure(with: tiles)
         let existingSubviews = view.subviews
@@ -50,49 +50,56 @@ final class WeatherTilesViewTests: XCTestCase {
         )
     }
 
-    func testConfigureHidesItemsOutsideVisibleLimit() {
-        let view = makeView(width: 390)
+    func testConfigureHidesItemsThatDoNotFitViewport() {
+        let view = makeView(size: CGSize(width: 220, height: 180))
 
         view.configure(with: makeTiles(count: 8))
         view.layoutIfNeeded()
 
-        XCTAssertEqual(
-            tileViews(in: view).filter { !$0.isHidden }.count,
-            4
-        )
+        let visibleCount = tileViews(in: view).filter { !$0.isHidden }.count
+
+        XCTAssertGreaterThan(visibleCount, 0)
+        XCTAssertLessThan(visibleCount, 8)
     }
 
-    func testWidthChangeRecalculatesVisibleTileCountAndFrames() {
-        let view = makeView(width: 390)
+    func testLargerBoundsDoNotReduceVisibleTileCount() {
+        let view = makeView(size: CGSize(width: 220, height: 180))
         view.configure(with: makeTiles(count: 8))
         view.layoutIfNeeded()
-        let compactFrame = tileViews(in: view)[0].frame
+        let compactVisibleCount = visibleTileViews(in: view).count
 
-        view.frame.size.width = 900
+        view.frame.size = CGSize(width: 900, height: 600)
         view.setNeedsLayout()
         view.layoutIfNeeded()
 
-        XCTAssertEqual(
-            tileViews(in: view).filter { !$0.isHidden }.count,
-            8
+        XCTAssertGreaterThanOrEqual(
+            visibleTileViews(in: view).count,
+            compactVisibleCount
         )
-        XCTAssertNotEqual(tileViews(in: view)[0].frame, compactFrame)
     }
 
-    func testLayoutUpdatesIntrinsicContentHeight() {
-        let view = makeView(width: 390)
-        view.configure(with: makeTiles(count: 4))
+    func testLongerTextProducesWiderTileInSameRow() {
+        let view = makeView(size: CGSize(width: 500, height: 180))
+        view.configure(
+            with: [
+                makeTile(title: "Wind", valueText: "2 m/s"),
+                makeTile(
+                    title: "Cloud coverage",
+                    valueText: "100%"
+                )
+            ]
+        )
 
         view.layoutIfNeeded()
 
-        XCTAssertEqual(
-            view.intrinsicContentSize.height,
-            390
+        XCTAssertGreaterThan(
+            visibleTileViews(in: view)[1].frame.width,
+            visibleTileViews(in: view)[0].frame.width
         )
     }
 
     func testResetHidesAndReusesTileViews() {
-        let view = makeView(width: 900)
+        let view = makeView(size: CGSize(width: 900, height: 600))
         view.configure(with: makeTiles(count: 4))
         let existingViews = tileViews(in: view)
 
@@ -103,15 +110,11 @@ final class WeatherTilesViewTests: XCTestCase {
         XCTAssertEqual(tileViews(in: view).count, 4)
         XCTAssertTrue(tileViews(in: view)[0] === existingViews[0])
         XCTAssertTrue(tileViews(in: view)[1] === existingViews[1])
-        XCTAssertEqual(
-            tileViews(in: view).filter { !$0.isHidden }.count,
-            2
-        )
-        XCTAssertEqual(view.intrinsicContentSize.height, 240)
+        XCTAssertEqual(visibleTileViews(in: view).count, 2)
     }
 
     func testViewUsesOnlyManualSubviewLayout() {
-        let view = makeView(width: 390)
+        let view = makeView(size: CGSize(width: 390, height: 400))
         view.configure(with: makeTiles(count: 4))
 
         XCTAssertTrue(view.constraints.isEmpty)
@@ -126,14 +129,18 @@ final class WeatherTilesViewTests: XCTestCase {
 
 private extension WeatherTilesViewTests {
 
-    func makeView(width: CGFloat) -> WeatherTilesView {
+    func makeView(size: CGSize) -> WeatherTilesView {
         WeatherTilesView(
-            frame: CGRect(x: 0, y: 0, width: width, height: 1_000)
+            frame: CGRect(origin: .zero, size: size)
         )
     }
 
     func tileViews(in view: WeatherTilesView) -> [WeatherTileView] {
         view.subviews.compactMap { $0 as? WeatherTileView }
+    }
+
+    func visibleTileViews(in view: WeatherTilesView) -> [WeatherTileView] {
+        tileViews(in: view).filter { !$0.isHidden }
     }
 
     func makeTiles(
@@ -152,13 +159,25 @@ private extension WeatherTilesViewTests {
         ]
 
         return identifiers.prefix(count).enumerated().map { index, identifier in
-            WeatherTileViewData(
+            makeTile(
                 id: identifier,
                 title: "Tile \(index)",
-                valueText: "\(valuePrefix) \(index)",
-                detailText: nil,
-                symbolName: "circle"
+                valueText: "\(valuePrefix) \(index)"
             )
         }
+    }
+
+    func makeTile(
+        id: WeatherTileIdentifier = .wind,
+        title: String,
+        valueText: String
+    ) -> WeatherTileViewData {
+        WeatherTileViewData(
+            id: id,
+            title: title,
+            valueText: valueText,
+            detailText: nil,
+            symbolName: "circle"
+        )
     }
 }

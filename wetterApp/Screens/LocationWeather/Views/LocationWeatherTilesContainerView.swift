@@ -6,10 +6,6 @@ final class LocationWeatherTilesContainerView: UIView {
 
     let tilesView = WeatherTilesView()
 
-    // MARK: - Properties
-
-    private var contentHeight: CGFloat = .zero
-
     // MARK: - Initialization
 
     override init(frame: CGRect) {
@@ -22,15 +18,6 @@ final class LocationWeatherTilesContainerView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Sizing
-
-    override var intrinsicContentSize: CGSize {
-        CGSize(
-            width: UIView.noIntrinsicMetric,
-            height: contentHeight
-        )
-    }
-
     // MARK: - Lifecycle
 
     override func layoutSubviews() {
@@ -38,13 +25,5 @@ final class LocationWeatherTilesContainerView: UIView {
 
         tilesView.frame = bounds
         tilesView.layoutIfNeeded()
-
-        let newContentHeight = tilesView.intrinsicContentSize.height
-        guard contentHeight != newContentHeight else {
-            return
-        }
-
-        contentHeight = newContentHeight
-        invalidateIntrinsicContentSize()
     }
 }

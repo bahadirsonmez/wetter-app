@@ -8,7 +8,6 @@ final class WeatherTilesView: UIView {
     private let layout: WeatherTilesLayout
     private var tiles: [WeatherTileViewData] = []
     private var tileViews: [WeatherTileView] = []
-    private var contentHeight: CGFloat = .zero
 
     // MARK: - Initialization
 
@@ -30,29 +29,19 @@ final class WeatherTilesView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - Sizing
-
-    override var intrinsicContentSize: CGSize {
-        CGSize(
-            width: UIView.noIntrinsicMetric,
-            height: contentHeight
-        )
-    }
-
     // MARK: - Lifecycle
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
         let result = layout.makeLayout(
-            availableWidth: bounds.width,
-            itemCount: tiles.count,
-            contentSizeCategory: traitCollection
-                .preferredContentSizeCategory
+            availableSize: bounds.size,
+            items: tileViews.prefix(tiles.count).map {
+                $0.makeLayoutItem()
+            }
         )
 
         apply(result)
-        updateContentHeight(result.contentSize.height)
     }
 
     override func traitCollectionDidChange(
@@ -102,7 +91,6 @@ final class WeatherTilesView: UIView {
             $0.isHidden = true
             $0.frame = .zero
         }
-        updateContentHeight(.zero)
         setNeedsLayout()
     }
 }
@@ -139,12 +127,4 @@ private extension WeatherTilesView {
         }
     }
 
-    func updateContentHeight(_ newHeight: CGFloat) {
-        guard contentHeight != newHeight else {
-            return
-        }
-
-        contentHeight = newHeight
-        invalidateIntrinsicContentSize()
-    }
 }
