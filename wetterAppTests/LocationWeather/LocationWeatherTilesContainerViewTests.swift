@@ -59,10 +59,10 @@ final class LocationWeatherTilesContainerViewTests: XCTestCase {
         XCTAssertEqual(container.intrinsicContentSize.height, .zero)
     }
 
-    func testContainerPrioritizesMinimumTileRowHeight() {
+    func testContainerAllowsTileRowToCollapseWhenViewportIsTooShort() {
         let container = LocationWeatherTilesContainerView()
 
-        XCTAssertGreaterThan(
+        XCTAssertLessThan(
             container.contentCompressionResistancePriority(for: .vertical),
             .defaultHigh
         )

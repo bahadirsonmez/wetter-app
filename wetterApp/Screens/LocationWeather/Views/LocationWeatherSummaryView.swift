@@ -15,14 +15,23 @@ final class LocationWeatherSummaryView: UIView {
 
     private let contentStackView = UIStackView()
     private let humidityStackView = UIStackView()
+    private var lastLayoutWidth: CGFloat = .zero
+    private var isShowingAdditionalInformation: Bool?
 
     // MARK: - Initialization
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        setContentCompressionResistancePriority(
+            UILayoutPriority(752),
+            for: .vertical
+        )
         setupView()
         reset()
-        updateLayout(for: traitCollection.horizontalSizeClass)
+        updateLayout(
+            for: traitCollection.horizontalSizeClass,
+            verticalSizeClass: traitCollection.verticalSizeClass
+        )
     }
 
     @available(*, unavailable)
@@ -32,17 +41,67 @@ final class LocationWeatherSummaryView: UIView {
 
     // MARK: - Lifecycle
 
+    override var intrinsicContentSize: CGSize {
+        let contentWidth = max(
+            .zero,
+            bounds.width
+                - directionalLayoutMargins.leading
+                - directionalLayoutMargins.trailing
+        )
+        let fittingWidth = contentWidth > .zero
+            ? contentWidth
+            : UIView.layoutFittingCompressedSize.width
+        let fittingSize = contentStackView.systemLayoutSizeFitting(
+            CGSize(
+                width: fittingWidth,
+                height: UIView.layoutFittingCompressedSize.height
+            ),
+            withHorizontalFittingPriority: contentWidth > .zero
+                ? .required
+                : .fittingSizeLevel,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+
+        return CGSize(
+            width: UIView.noIntrinsicMetric,
+            height: ceil(
+                directionalLayoutMargins.top
+                    + fittingSize.height
+                    + directionalLayoutMargins.bottom
+            )
+        )
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        guard bounds.width != lastLayoutWidth else {
+            return
+        }
+
+        lastLayoutWidth = bounds.width
+        invalidateIntrinsicContentSize()
+    }
+
     override func traitCollectionDidChange(
         _ previousTraitCollection: UITraitCollection?
     ) {
         super.traitCollectionDidChange(previousTraitCollection)
 
-        guard previousTraitCollection?.horizontalSizeClass
-            != traitCollection.horizontalSizeClass else {
-            return
+        if previousTraitCollection?.horizontalSizeClass
+            != traitCollection.horizontalSizeClass
+            || previousTraitCollection?.verticalSizeClass
+                != traitCollection.verticalSizeClass {
+            updateLayout(
+                for: traitCollection.horizontalSizeClass,
+                verticalSizeClass: traitCollection.verticalSizeClass
+            )
         }
 
-        updateLayout(for: traitCollection.horizontalSizeClass)
+        if previousTraitCollection?.preferredContentSizeCategory
+            != traitCollection.preferredContentSizeCategory {
+            invalidateIntrinsicContentSize()
+        }
     }
 
     // MARK: - Configuration
@@ -57,6 +116,7 @@ final class LocationWeatherSummaryView: UIView {
 
         countryCodeLabel.isHidden = viewData.countryCode == nil
         conditionLabel.isHidden = viewData.conditionText == nil
+        invalidateIntrinsicContentSize()
     }
 
     func reset() {
@@ -70,15 +130,33 @@ final class LocationWeatherSummaryView: UIView {
 
         countryCodeLabel.isHidden = true
         conditionLabel.isHidden = true
+        invalidateIntrinsicContentSize()
     }
 
     func updateLayout(for horizontalSizeClass: UIUserInterfaceSizeClass?) {
+        updateLayout(
+            for: horizontalSizeClass,
+            verticalSizeClass: nil
+        )
+    }
+
+    func updateLayout(
+        for horizontalSizeClass: UIUserInterfaceSizeClass?,
+        verticalSizeClass: UIUserInterfaceSizeClass?
+    ) {
         let showsAdditionalInformation = horizontalSizeClass == .regular
+            && verticalSizeClass != .compact
+        guard isShowingAdditionalInformation
+            != showsAdditionalInformation else {
+            return
+        }
+        isShowingAdditionalInformation = showsAdditionalInformation
 
         feelsLikeLabel.isHidden = !showsAdditionalInformation
         humidityTitleLabel.isHidden = !showsAdditionalInformation
         humidityValueLabel.isHidden = !showsAdditionalInformation
         humidityStackView.isHidden = !showsAdditionalInformation
+        invalidateIntrinsicContentSize()
     }
 
     // MARK: - Setup
