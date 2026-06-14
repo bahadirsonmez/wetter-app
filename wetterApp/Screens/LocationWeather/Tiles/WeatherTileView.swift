@@ -10,6 +10,12 @@ final class WeatherTileView: UIView {
     let valueLabel = UILabel()
     let detailLabel = UILabel()
 
+    // MARK: - Properties
+
+    private(set) var identifier: WeatherTileIdentifier?
+    var onMoveEarlier: (() -> Void)?
+    var onMoveLater: (() -> Void)?
+
     // MARK: - Constants
 
     private enum Layout {
@@ -124,6 +130,7 @@ final class WeatherTileView: UIView {
     func configure(with viewData: WeatherTileViewData) {
         let style = WeatherTileStyle(identifier: viewData.id)
 
+        identifier = viewData.id
         backgroundColor = style.backgroundColor
         symbolImageView.image = UIImage(systemName: style.symbolName)
         symbolImageView.tintColor = style.foregroundColor
@@ -139,6 +146,10 @@ final class WeatherTileView: UIView {
     }
 
     func reset() {
+        identifier = nil
+        onMoveEarlier = nil
+        onMoveLater = nil
+        accessibilityCustomActions = nil
         symbolImageView.image = nil
         titleLabel.text = nil
         valueLabel.text = nil
@@ -151,6 +162,53 @@ final class WeatherTileView: UIView {
         valueLabel.textColor = .label
         detailLabel.textColor = .secondaryLabel
         setNeedsLayout()
+    }
+
+    func configureAccessibilityActions(
+        canMoveEarlier: Bool,
+        canMoveLater: Bool
+    ) {
+        var actions: [UIAccessibilityCustomAction] = []
+
+        if canMoveEarlier {
+            actions.append(
+                UIAccessibilityCustomAction(
+                    name: "Move Earlier",
+                    target: self,
+                    selector: #selector(performMoveEarlierAccessibilityAction)
+                )
+            )
+        }
+
+        if canMoveLater {
+            actions.append(
+                UIAccessibilityCustomAction(
+                    name: "Move Later",
+                    target: self,
+                    selector: #selector(performMoveLaterAccessibilityAction)
+                )
+            )
+        }
+
+        accessibilityCustomActions = actions
+    }
+
+    @objc func performMoveEarlierAccessibilityAction() -> Bool {
+        guard let onMoveEarlier else {
+            return false
+        }
+
+        onMoveEarlier()
+        return true
+    }
+
+    @objc func performMoveLaterAccessibilityAction() -> Bool {
+        guard let onMoveLater else {
+            return false
+        }
+
+        onMoveLater()
+        return true
     }
 
     func makeLayoutItem(
