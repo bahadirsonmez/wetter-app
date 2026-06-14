@@ -256,8 +256,10 @@ extension TemperatureGraphView: UICollectionViewDataSource {
         )
         cell.configure(
             with: item,
+            previous2Temperature: neighbors.previous2,
             previousTemperature: neighbors.previous,
             nextTemperature: neighbors.next,
+            next2Temperature: neighbors.next2,
             minimumTemperature: viewData.minimumTemperature,
             maximumTemperature: viewData.maximumTemperature
         )
@@ -338,7 +340,7 @@ private extension TemperatureGraphView {
     func neighboringTemperatures(
         at indexPath: IndexPath,
         in viewData: HourlyForecastViewData
-    ) -> (previous: Double?, next: Double?) {
+    ) -> (previous2: Double?, previous: Double?, next: Double?, next2: Double?) {
         let items = viewData.days.flatMap(\.items)
         let itemOffset = viewData.days
             .prefix(indexPath.section)
@@ -346,16 +348,22 @@ private extension TemperatureGraphView {
             + indexPath.item
 
         guard items.indices.contains(itemOffset) else {
-            return (nil, nil)
+            return (nil, nil, nil, nil)
         }
 
+        let previous2 = items.indices.contains(itemOffset - 2)
+            ? items[itemOffset - 2].temperatureValue
+            : nil
         let previous = items.indices.contains(itemOffset - 1)
             ? items[itemOffset - 1].temperatureValue
             : nil
         let next = items.indices.contains(itemOffset + 1)
             ? items[itemOffset + 1].temperatureValue
             : nil
+        let next2 = items.indices.contains(itemOffset + 2)
+            ? items[itemOffset + 2].temperatureValue
+            : nil
 
-        return (previous, next)
+        return (previous2, previous, next, next2)
     }
 }

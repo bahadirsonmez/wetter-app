@@ -114,8 +114,10 @@ final class TemperatureGraphCurveViewTests: XCTestCase {
     func testEqualTemperaturesProduceHorizontalCurve() {
         let geometry = makeGeometry(
             currentTemperature: 20,
+            previous2Temperature: 20,
             previousTemperature: 20,
             nextTemperature: 20,
+            next2Temperature: 20,
             minimumTemperature: 0,
             maximumTemperature: 40
         )
@@ -187,8 +189,10 @@ private extension TemperatureGraphCurveViewTests {
 
     func makeGeometry(
         currentTemperature: Double,
+        previous2Temperature: Double? = nil,
         previousTemperature: Double?,
         nextTemperature: Double?,
+        next2Temperature: Double? = nil,
         minimumTemperature: Double,
         maximumTemperature: Double
     ) -> TemperatureGraphCurveGeometry {
@@ -196,8 +200,10 @@ private extension TemperatureGraphCurveViewTests {
             in: CGRect(x: 0, y: 0, width: 100, height: 80),
             configuration: .init(
                 currentTemperature: currentTemperature,
+                previous2Temperature: previous2Temperature,
                 previousTemperature: previousTemperature,
                 nextTemperature: nextTemperature,
+                next2Temperature: next2Temperature,
                 minimumTemperature: minimumTemperature,
                 maximumTemperature: maximumTemperature
             )
@@ -205,16 +211,20 @@ private extension TemperatureGraphCurveViewTests {
     }
 
     func makeView(
+        previous2Temperature: Double? = nil,
         previousTemperature: Double?,
-        nextTemperature: Double?
+        nextTemperature: Double?,
+        next2Temperature: Double? = nil
     ) -> TemperatureGraphCurveView {
         let view = TemperatureGraphCurveView(
             frame: CGRect(x: 0, y: 0, width: 100, height: 80)
         )
         view.configure(
             currentTemperature: 15,
+            previous2Temperature: previous2Temperature,
             previousTemperature: previousTemperature,
             nextTemperature: nextTemperature,
+            next2Temperature: next2Temperature,
             minimumTemperature: 0,
             maximumTemperature: 30
         )

@@ -31,8 +31,10 @@ final class HourlyForecastCell: UICollectionViewCell {
 
     func configure(
         with viewData: HourlyForecastItemViewData,
+        previous2Temperature: Double?,
         previousTemperature: Double?,
         nextTemperature: Double?,
+        next2Temperature: Double?,
         minimumTemperature: Double,
         maximumTemperature: Double
     ) {
@@ -41,8 +43,10 @@ final class HourlyForecastCell: UICollectionViewCell {
 
         temperatureGraphCurveView.configure(
             currentTemperature: viewData.temperatureValue,
+            previous2Temperature: previous2Temperature,
             previousTemperature: previousTemperature,
             nextTemperature: nextTemperature,
+            next2Temperature: next2Temperature,
             minimumTemperature: minimumTemperature,
             maximumTemperature: maximumTemperature
         )
@@ -90,7 +94,8 @@ private extension HourlyForecastCell {
 
         NSLayoutConstraint.activate([
             labelsStackView.topAnchor.constraint(
-                equalTo: contentView.topAnchor
+                equalTo: contentView.topAnchor,
+                constant: 8
             ),
             labelsStackView.leadingAnchor.constraint(
                 equalTo: contentView.leadingAnchor

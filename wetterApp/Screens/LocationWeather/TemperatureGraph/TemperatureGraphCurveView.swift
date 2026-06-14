@@ -15,8 +15,10 @@ final class TemperatureGraphCurveView: UIView {
     /// Holds the required temperature data to calculate the curve geometry.
     struct Configuration: Equatable {
         let currentTemperature: Double
+        let previous2Temperature: Double?
         let previousTemperature: Double?
         let nextTemperature: Double?
+        let next2Temperature: Double?
         let minimumTemperature: Double
         let maximumTemperature: Double
     }
@@ -75,15 +77,19 @@ final class TemperatureGraphCurveView: UIView {
     ///   - maximumTemperature: The maximum temperature across the entire visible graph data.
     func configure(
         currentTemperature: Double,
+        previous2Temperature: Double?,
         previousTemperature: Double?,
         nextTemperature: Double?,
+        next2Temperature: Double?,
         minimumTemperature: Double,
         maximumTemperature: Double
     ) {
         configuration = Configuration(
             currentTemperature: currentTemperature,
+            previous2Temperature: previous2Temperature,
             previousTemperature: previousTemperature,
             nextTemperature: nextTemperature,
+            next2Temperature: next2Temperature,
             minimumTemperature: minimumTemperature,
             maximumTemperature: maximumTemperature
         )
@@ -105,8 +111,9 @@ final class TemperatureGraphCurveView: UIView {
         in bounds: CGRect,
         configuration: Configuration
     ) -> TemperatureGraphCurveGeometry {
+        let currentTemp = configuration.currentTemperature
         let currentY = yPosition(
-            for: configuration.currentTemperature,
+            for: currentTemp,
             in: bounds,
             minimumTemperature: configuration.minimumTemperature,
             maximumTemperature: configuration.maximumTemperature
@@ -115,22 +122,33 @@ final class TemperatureGraphCurveView: UIView {
         let currentPoint = CGPoint(x: bounds.midX, y: currentY)
 
         let w = bounds.width
-
-        var leftSegment: TemperatureGraphCurveSegment?
-        // Calculate the left segment if there is a previous temperature point.
-        if let previousTemperature = configuration.previousTemperature {
-            let prevY = yPosition(
-                for: previousTemperature,
+        
+        let yPos = { (temp: Double) -> CGFloat in
+            return yPosition(
+                for: temp,
                 in: bounds,
                 minimumTemperature: configuration.minimumTemperature,
                 maximumTemperature: configuration.maximumTemperature
             )
+        }
+
+        var leftSegment: TemperatureGraphCurveSegment?
+        // Calculate the left segment if there is a previous temperature point.
+        if let previousTemp = configuration.previousTemperature {
+            let (c1, c2) = globalControlPoints(
+                beforeA: configuration.previous2Temperature,
+                A: previousTemp,
+                B: currentTemp,
+                afterB: configuration.nextTemperature
+            )
+            let halves = splitBezier(p0: previousTemp, p1: c1, p2: c2, p3: currentTemp)
+            let rightHalf = halves.rightHalf
+            
             // The left segment draws from the left edge of the cell (bounds.minX) to the center (bounds.midX).
-            // It represents the right half of the curve that connects the previous point to the current point.
             leftSegment = TemperatureGraphCurveSegment(
-                startPoint: CGPoint(x: bounds.minX, y: (prevY + currentY) / 2.0),
-                firstControlPoint: CGPoint(x: bounds.minX + w / 6.0, y: (prevY + 3.0 * currentY) / 4.0),
-                secondControlPoint: CGPoint(x: bounds.minX + w / 3.0, y: currentY),
+                startPoint: CGPoint(x: bounds.minX, y: yPos(rightHalf.start)),
+                firstControlPoint: CGPoint(x: bounds.minX + w / 6.0, y: yPos(rightHalf.c1)),
+                secondControlPoint: CGPoint(x: bounds.minX + w / 3.0, y: yPos(rightHalf.c2)),
                 endPoint: currentPoint
             )
         } else {
@@ -144,20 +162,22 @@ final class TemperatureGraphCurveView: UIView {
 
         var rightSegment: TemperatureGraphCurveSegment?
         // Calculate the right segment if there is a next temperature point.
-        if let nextTemperature = configuration.nextTemperature {
-            let nextY = yPosition(
-                for: nextTemperature,
-                in: bounds,
-                minimumTemperature: configuration.minimumTemperature,
-                maximumTemperature: configuration.maximumTemperature
+        if let nextTemp = configuration.nextTemperature {
+            let (c1, c2) = globalControlPoints(
+                beforeA: configuration.previousTemperature,
+                A: currentTemp,
+                B: nextTemp,
+                afterB: configuration.next2Temperature
             )
+            let halves = splitBezier(p0: currentTemp, p1: c1, p2: c2, p3: nextTemp)
+            let leftHalf = halves.leftHalf
+            
             // The right segment draws from the center of the cell (bounds.midX) to the right edge (bounds.maxX).
-            // It represents the left half of the curve that connects the current point to the next point.
             rightSegment = TemperatureGraphCurveSegment(
                 startPoint: currentPoint,
-                firstControlPoint: CGPoint(x: bounds.midX + w / 6.0, y: currentY),
-                secondControlPoint: CGPoint(x: bounds.midX + w / 3.0, y: (3.0 * currentY + nextY) / 4.0),
-                endPoint: CGPoint(x: bounds.maxX, y: (currentY + nextY) / 2.0)
+                firstControlPoint: CGPoint(x: bounds.midX + w / 6.0, y: yPos(leftHalf.c1)),
+                secondControlPoint: CGPoint(x: bounds.midX + w / 3.0, y: yPos(leftHalf.c2)),
+                endPoint: CGPoint(x: bounds.maxX, y: yPos(leftHalf.end))
             )
         } else {
             rightSegment = TemperatureGraphCurveSegment(
@@ -172,6 +192,43 @@ final class TemperatureGraphCurveView: UIView {
             leftSegment: leftSegment,
             currentPoint: currentPoint,
             rightSegment: rightSegment
+        )
+    }
+    
+    /// Computes the intermediate Bézier control points for a cubic curve from A to B based on the Catmull-Rom spline formulation.
+    private static func globalControlPoints(
+        beforeA: Double?,
+        A: Double,
+        B: Double,
+        afterB: Double?
+    ) -> (first: Double, second: Double) {
+        let mA = beforeA != nil ? (B - beforeA!) / 2.0 : B - A
+        let mB = afterB != nil ? (afterB! - A) / 2.0 : B - A
+        return (A + mA / 3.0, B - mB / 3.0)
+    }
+    
+    /// Splits a cubic Bézier curve defined by 4 control points exactly in half at t = 0.5 using De Casteljau's algorithm.
+    private static func splitBezier(
+        p0: Double,
+        p1: Double,
+        p2: Double,
+        p3: Double
+    ) -> (
+        leftHalf: (start: Double, c1: Double, c2: Double, end: Double),
+        rightHalf: (start: Double, c1: Double, c2: Double, end: Double)
+    ) {
+        let m0 = (p0 + p1) / 2.0
+        let m1 = (p1 + p2) / 2.0
+        let m2 = (p2 + p3) / 2.0
+        
+        let q0 = (m0 + m1) / 2.0
+        let q1 = (m1 + m2) / 2.0
+        
+        let mid = (q0 + q1) / 2.0
+        
+        return (
+            leftHalf: (start: p0, c1: m0, c2: q0, end: mid),
+            rightHalf: (start: mid, c1: q1, c2: m2, end: p3)
         )
     }
 }
