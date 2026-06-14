@@ -90,6 +90,10 @@ final class TemperatureGraphView: UIView {
         viewData = nil
         collectionView.reloadData()
     }
+
+    func invalidateLayoutForBoundsChange() {
+        collectionView.collectionViewLayout.invalidateLayout()
+    }
 }
 
 // MARK: - Setup

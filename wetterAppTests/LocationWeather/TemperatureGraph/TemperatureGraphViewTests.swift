@@ -153,6 +153,22 @@ final class TemperatureGraphViewTests: XCTestCase {
         XCTAssertNotNil(header)
         XCTAssertFalse(header is ForecastDayHeaderView)
     }
+
+    func testInvalidateLayoutForBoundsChangeInvalidatesCollectionLayout() {
+        let layout = InvalidationTrackingLayout()
+        let collectionView = ReloadTrackingCollectionView(
+            frame: CGRect(x: 0, y: 0, width: 320, height: 200),
+            collectionViewLayout: layout
+        )
+        let sut = TemperatureGraphView(
+            frame: collectionView.frame,
+            collectionView: collectionView
+        )
+
+        sut.invalidateLayoutForBoundsChange()
+
+        XCTAssertEqual(layout.invalidateLayoutCallCount, 1)
+    }
 }
 
 // MARK: - Helpers
@@ -252,5 +268,15 @@ private final class ReloadTrackingCollectionView: UICollectionView {
     override func reloadData() {
         reloadDataCallCount += 1
         super.reloadData()
+    }
+}
+
+private final class InvalidationTrackingLayout: UICollectionViewLayout {
+
+    private(set) var invalidateLayoutCallCount = 0
+
+    override func invalidateLayout() {
+        invalidateLayoutCallCount += 1
+        super.invalidateLayout()
     }
 }
