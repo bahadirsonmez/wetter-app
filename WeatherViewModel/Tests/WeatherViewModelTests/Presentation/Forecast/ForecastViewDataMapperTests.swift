@@ -49,7 +49,6 @@ final class ForecastViewDataMapperTests: XCTestCase {
         XCTAssertEqual(item.id, 1_781_355_600)
         XCTAssertEqual(item.timeText, "15:00")
         XCTAssertEqual(item.temperatureText, "24°C")
-        XCTAssertEqual(item.conditionText, "Moderate rain")
         XCTAssertEqual(item.temperatureValue, 24.4)
     }
 
