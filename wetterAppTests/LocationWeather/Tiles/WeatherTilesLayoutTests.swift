@@ -78,6 +78,56 @@ final class WeatherTilesLayoutTests: XCTestCase {
         XCTAssertEqual(result.itemFrames[1].height, 120)
     }
 
+    func testRowsDistributeItemsEvenlyWhenBalancedPartitionFits() {
+        let result = makeLayout(
+            availableSize: CGSize(width: 760, height: 300),
+            items: [
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 220),
+                item(width: 220)
+            ]
+        )
+        let rowCounts = Dictionary(
+            grouping: result.itemFrames,
+            by: \.minY
+        )
+        .values
+        .map(\.count)
+        .sorted(by: >)
+
+        XCTAssertEqual(rowCounts, [4, 4])
+    }
+
+    func testRowsUseNearestValidDistributionWhenEqualSplitDoesNotFit() {
+        let result = makeLayout(
+            availableSize: CGSize(width: 760, height: 300),
+            items: [
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 90),
+                item(width: 300),
+                item(width: 300)
+            ]
+        )
+        let rowCounts = Dictionary(
+            grouping: result.itemFrames,
+            by: \.minY
+        )
+        .values
+        .map(\.count)
+        .sorted(by: >)
+
+        XCTAssertEqual(rowCounts, [6, 2])
+    }
+
     func testSmallViewportDisplaysLongestFittingPrefix() {
         let result = makeLayout(
             availableSize: CGSize(width: 400, height: 300),
