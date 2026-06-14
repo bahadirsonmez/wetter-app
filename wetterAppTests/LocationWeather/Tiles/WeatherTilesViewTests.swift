@@ -155,6 +155,107 @@ final class WeatherTilesViewTests: XCTestCase {
         XCTAssertEqual(notificationCount, 1)
     }
 
+    func testWidthIncreaseRecalculatesTileFrames() {
+        let view = makeView(size: CGSize(width: 320, height: 500))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let compactFrames = visibleTileViews(in: view).map(\.frame)
+
+        resize(view, to: CGSize(width: 700, height: 500))
+
+        XCTAssertNotEqual(
+            visibleTileViews(in: view).map(\.frame),
+            compactFrames
+        )
+    }
+
+    func testWidthDecreaseRecalculatesTileFrames() {
+        let view = makeView(size: CGSize(width: 700, height: 500))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let expandedFrames = visibleTileViews(in: view).map(\.frame)
+
+        resize(view, to: CGSize(width: 320, height: 500))
+
+        XCTAssertNotEqual(
+            visibleTileViews(in: view).map(\.frame),
+            expandedFrames
+        )
+    }
+
+    func testHeightDecreaseReducesVisibleTileCount() {
+        let view = makeView(size: CGSize(width: 320, height: 700))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let expandedVisibleCount = visibleTileViews(in: view).count
+
+        resize(view, to: CGSize(width: 320, height: 180))
+
+        XCTAssertLessThan(
+            visibleTileViews(in: view).count,
+            expandedVisibleCount
+        )
+    }
+
+    func testHeightIncreaseDoesNotReduceVisibleTileCount() {
+        let view = makeView(size: CGSize(width: 320, height: 180))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let compactVisibleCount = visibleTileViews(in: view).count
+
+        resize(view, to: CGSize(width: 320, height: 700))
+
+        XCTAssertGreaterThanOrEqual(
+            visibleTileViews(in: view).count,
+            compactVisibleCount
+        )
+    }
+
+    func testResizeReusesExistingTileViews() {
+        let view = makeView(size: CGSize(width: 320, height: 300))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+        let existingTileViews = tileViews(in: view)
+
+        resize(view, to: CGSize(width: 700, height: 500))
+
+        XCTAssertEqual(tileViews(in: view).count, existingTileViews.count)
+        XCTAssertTrue(
+            zip(existingTileViews, tileViews(in: view)).allSatisfy {
+                $0 === $1
+            }
+        )
+    }
+
+    func testResizeDoesNotChangePresentationOrder() {
+        let view = makeView(size: CGSize(width: 320, height: 300))
+        view.configure(with: makeTiles(count: 8))
+        view.layoutIfNeeded()
+
+        resize(view, to: CGSize(width: 700, height: 500))
+
+        XCTAssertEqual(
+            visibleTileViews(in: view).compactMap(\.titleLabel.text),
+            (0..<visibleTileViews(in: view).count).map { "Tile \($0)" }
+        )
+    }
+
+    func testAccessibilitySizeRecalculatesMinimumHeight() {
+        let view = makeView(size: CGSize(width: 390, height: 400))
+        view.configure(with: makeTiles(count: 4))
+
+        let regularHeight = view.minimumRequiredHeight(
+            for: 390,
+            contentSizeCategory: .large
+        )
+        let accessibilityHeight = view.minimumRequiredHeight(
+            for: 390,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+        )
+
+        XCTAssertGreaterThan(accessibilityHeight, regularHeight)
+    }
+
     func testResetHidesAndReusesTileViews() {
         let view = makeView(size: CGSize(width: 900, height: 600))
         view.configure(with: makeTiles(count: 4))
@@ -198,6 +299,12 @@ private extension WeatherTilesViewTests {
 
     func visibleTileViews(in view: WeatherTilesView) -> [WeatherTileView] {
         tileViews(in: view).filter { !$0.isHidden }
+    }
+
+    func resize(_ view: WeatherTilesView, to size: CGSize) {
+        view.frame.size = size
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
     }
 
     func makeTiles(
