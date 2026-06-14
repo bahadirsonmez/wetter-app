@@ -4,6 +4,10 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
 
     private static let headerZIndex = 1_000
 
+    override class var invalidationContextClass: AnyClass {
+        TemperatureGraphLayoutInvalidationContext.self
+    }
+
     var metrics: TemperatureGraphLayoutMetrics {
         didSet {
             invalidateLayout()
@@ -17,6 +21,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         IndexPath: UICollectionViewLayoutAttributes
     ] = [:]
     private var contentSize: CGSize = .zero
+    private var needsGeometryRebuild = true
 
     init(metrics: TemperatureGraphLayoutMetrics = .init()) {
         self.metrics = metrics
@@ -33,6 +38,9 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
 
         guard let collectionView else {
             reset()
+            return
+        }
+        guard needsGeometryRebuild else {
             return
         }
 
@@ -78,6 +86,8 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
                 itemAttributes[indexPath] = item
             }
         }
+
+        needsGeometryRebuild = false
     }
 
     override var collectionViewContentSize: CGSize {
@@ -127,8 +137,53 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
             return false
         }
 
-        // Recalculate when scrolling or when rotation changes the viewport.
+        // Scrolling updates sticky headers, while size changes additionally
+        // rebuild the cached graph geometry.
         return collectionView.bounds != newBounds
+    }
+
+    override func invalidationContext(
+        forBoundsChange newBounds: CGRect
+    ) -> UICollectionViewLayoutInvalidationContext {
+        let context = super.invalidationContext(
+            forBoundsChange: newBounds
+        )
+        guard
+            let context = context
+                as? TemperatureGraphLayoutInvalidationContext,
+            let collectionView
+        else {
+            return context
+        }
+
+        if collectionView.bounds.size != newBounds.size {
+            context.invalidatesGeometry = true
+        } else if collectionView.bounds.origin != newBounds.origin {
+            context.invalidatesStickyHeadersOnly = true
+            context.invalidateSupplementaryElements(
+                ofKind: ForecastDayHeaderView.elementKind,
+                at: Array(headerAttributes.keys)
+            )
+        }
+
+        return context
+    }
+
+    override func invalidateLayout(
+        with context: UICollectionViewLayoutInvalidationContext
+    ) {
+        if let context = context
+            as? TemperatureGraphLayoutInvalidationContext {
+            if context.invalidatesGeometry
+                || context.invalidateEverything
+                || context.invalidateDataSourceCounts {
+                needsGeometryRebuild = true
+            }
+        } else {
+            needsGeometryRebuild = true
+        }
+
+        super.invalidateLayout(with: context)
     }
 }
 
@@ -140,6 +195,7 @@ private extension TemperatureGraphLayout {
         itemAttributes.removeAll(keepingCapacity: true)
         headerAttributes.removeAll(keepingCapacity: true)
         contentSize = .zero
+        needsGeometryRebuild = true
     }
 
     func stickyHeaderAttributes(
