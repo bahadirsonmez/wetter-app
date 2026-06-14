@@ -98,9 +98,6 @@ private extension ForecastViewDataMapper {
             temperatureText: formatter.temperature(
                 forecast.temperature.temperature
             ),
-            conditionText: forecast.conditions.first.map {
-                formatter.capitalizedFirstLetter($0.description)
-            },
             temperatureValue: forecast.temperature.temperature
         )
     }

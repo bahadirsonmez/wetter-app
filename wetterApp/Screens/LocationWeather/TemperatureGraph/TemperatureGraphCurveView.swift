@@ -33,6 +33,12 @@ final class TemperatureGraphCurveView: UIView {
     /// The layer responsible for drawing the circular indicator at the current temperature point.
     let pointLayer = CAShapeLayer()
 
+    /// The layer responsible for filling the area under the left half of the curve.
+    let leftFillLayer = CAShapeLayer()
+
+    /// The layer responsible for filling the area under the right half of the curve.
+    let rightFillLayer = CAShapeLayer()
+
     /// The current configuration data used for rendering.
     private(set) var configuration: Configuration?
 
@@ -52,10 +58,11 @@ final class TemperatureGraphCurveView: UIView {
         updatePaths()
     }
 
-    override func tintColorDidChange() {
-        super.tintColorDidChange()
-        // Update layer stroke and fill colors when the tint color changes.
-        updateColors()
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateColors()
+        }
     }
 
     /// Configures the view with new temperature data and requests a layout update.
@@ -163,6 +170,11 @@ private extension TemperatureGraphCurveView {
     func setupLayers() {
         isOpaque = false
 
+        [leftFillLayer, rightFillLayer].forEach {
+            $0.lineWidth = 0
+            layer.addSublayer($0)
+        }
+
         [leftCurveLayer, rightCurveLayer].forEach {
             $0.fillColor = nil
             $0.lineCap = .round
@@ -177,10 +189,15 @@ private extension TemperatureGraphCurveView {
 
     /// Synchronizes the stroke and fill colors of the layers with the view's current tint color.
     func updateColors() {
-        let graphColor = tintColor.cgColor
-        leftCurveLayer.strokeColor = graphColor
-        rightCurveLayer.strokeColor = graphColor
-        pointLayer.fillColor = graphColor
+        let strokeColor = UIColor.label.cgColor
+        let fillColor = UIColor.systemGray4.cgColor
+
+        leftCurveLayer.strokeColor = strokeColor
+        rightCurveLayer.strokeColor = strokeColor
+        pointLayer.fillColor = strokeColor
+
+        leftFillLayer.fillColor = fillColor
+        rightFillLayer.fillColor = fillColor
     }
 }
 
@@ -206,10 +223,15 @@ private extension TemperatureGraphCurveView {
 
         leftCurveLayer.frame = bounds
         rightCurveLayer.frame = bounds
+        leftFillLayer.frame = bounds
+        rightFillLayer.frame = bounds
         pointLayer.frame = bounds
         
         leftCurveLayer.path = curvePath(for: geometry.leftSegment)
         rightCurveLayer.path = curvePath(for: geometry.rightSegment)
+        
+        leftFillLayer.path = fillPath(for: geometry.leftSegment, bounds: bounds)
+        rightFillLayer.path = fillPath(for: geometry.rightSegment, bounds: bounds)
         
         pointLayer.path = UIBezierPath(
             ovalIn: CGRect(
@@ -239,12 +261,33 @@ private extension TemperatureGraphCurveView {
         return path.cgPath
     }
 
+    /// Converts a `TemperatureGraphCurveSegment` into a closed `CGPath` for filling the area beneath the curve.
+    func fillPath(for segment: TemperatureGraphCurveSegment?, bounds: CGRect) -> CGPath? {
+        guard let segment else {
+            return nil
+        }
+
+        let path = UIBezierPath()
+        path.move(to: segment.startPoint)
+        path.addCurve(
+            to: segment.endPoint,
+            controlPoint1: segment.firstControlPoint,
+            controlPoint2: segment.secondControlPoint
+        )
+        path.addLine(to: CGPoint(x: segment.endPoint.x, y: bounds.maxY))
+        path.addLine(to: CGPoint(x: segment.startPoint.x, y: bounds.maxY))
+        path.close()
+        return path.cgPath
+    }
+
     /// Removes all paths from the sublayers, making the graph invisible.
     func clearPaths() {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         leftCurveLayer.path = nil
         rightCurveLayer.path = nil
+        leftFillLayer.path = nil
+        rightFillLayer.path = nil
         pointLayer.path = nil
         CATransaction.commit()
     }

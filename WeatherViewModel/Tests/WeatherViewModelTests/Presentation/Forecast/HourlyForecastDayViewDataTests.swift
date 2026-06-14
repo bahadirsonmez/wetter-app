@@ -5,11 +5,10 @@ final class HourlyForecastDayViewDataTests: XCTestCase {
 
     func testInitializationStoresTimestampIdentifierAndItems() {
         let item = HourlyForecastItemViewData(
-            id: 1_781_179_200,
-            timeText: "12:00",
-            temperatureText: "24°C",
-            conditionText: "Light rain",
-            temperatureValue: 24.1
+            id: 1,
+            timeText: "15:00",
+            temperatureText: "20°C",
+            temperatureValue: 20
         )
 
         let viewData = HourlyForecastDayViewData(
