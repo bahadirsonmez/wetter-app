@@ -153,40 +153,126 @@ private extension WeatherTilesLayout {
         items: [WeatherTilesLayoutItem],
         usableWidth: CGFloat
     ) -> [[WeatherTilesLayoutItem]] {
-        var rows: [[WeatherTilesLayoutItem]] = []
-        var currentRow: [WeatherTilesLayoutItem] = []
-        var currentWidth: CGFloat = .zero
+        guard !items.isEmpty, usableWidth > .zero else {
+            return []
+        }
 
-        for item in items {
-            // A tile wider than the viewport occupies a row by itself and is
-            // clamped so its frame never exceeds the available width.
-            let preferredWidth = min(
-                max(.zero, item.preferredWidth),
-                usableWidth
-            )
-            let requiredWidth = currentRow.isEmpty
-                ? preferredWidth
-                : metrics.horizontalSpacing + preferredWidth
+        // Use the smallest row count that can contain every item, then choose
+        // the most even contiguous distribution for that row count. This
+        // avoids layouts such as 6 + 2 when a balanced 4 + 4 split also fits.
+        for rowCount in 1...items.count {
+            if let rows = balancedRows(
+                items: items,
+                rowCount: rowCount,
+                usableWidth: usableWidth
+            ) {
+                return rows
+            }
+        }
 
-            // Rows are built greedily: move the next tile to a new row when
-            // its measured minimum width no longer fits.
-            if !currentRow.isEmpty, currentWidth + requiredWidth > usableWidth {
-                rows.append(currentRow)
-                currentRow = []
-                currentWidth = .zero
+        return []
+    }
+
+    func balancedRows(
+        items: [WeatherTilesLayoutItem],
+        rowCount: Int,
+        usableWidth: CGFloat
+    ) -> [[WeatherTilesLayoutItem]]? {
+        var candidates: [[[WeatherTilesLayoutItem]]] = []
+
+        collectRowCandidates(
+            items: items,
+            startIndex: .zero,
+            remainingRowCount: rowCount,
+            usableWidth: usableWidth,
+            currentRows: [],
+            candidates: &candidates
+        )
+
+        return candidates.min { first, second in
+            isMoreBalanced(first, than: second)
+        }
+    }
+
+    func collectRowCandidates(
+        items: [WeatherTilesLayoutItem],
+        startIndex: Int,
+        remainingRowCount: Int,
+        usableWidth: CGFloat,
+        currentRows: [[WeatherTilesLayoutItem]],
+        candidates: inout [[[WeatherTilesLayoutItem]]]
+    ) {
+        let remainingItemCount = items.count - startIndex
+        guard remainingItemCount >= remainingRowCount else {
+            return
+        }
+
+        if remainingRowCount == 1 {
+            let finalRow = Array(items[startIndex...])
+            guard rowFits(finalRow, usableWidth: usableWidth) else {
+                return
             }
 
-            currentRow.append(item)
-            currentWidth += currentRow.count == 1
-                ? preferredWidth
-                : metrics.horizontalSpacing + preferredWidth
+            candidates.append(currentRows + [finalRow])
+            return
         }
 
-        if !currentRow.isEmpty {
-            rows.append(currentRow)
+        let maximumEndIndex = items.count - remainingRowCount
+        guard startIndex <= maximumEndIndex else {
+            return
         }
 
-        return rows
+        for endIndex in startIndex...maximumEndIndex {
+            let row = Array(items[startIndex...endIndex])
+            guard rowFits(row, usableWidth: usableWidth) else {
+                break
+            }
+
+            collectRowCandidates(
+                items: items,
+                startIndex: endIndex + 1,
+                remainingRowCount: remainingRowCount - 1,
+                usableWidth: usableWidth,
+                currentRows: currentRows + [row],
+                candidates: &candidates
+            )
+        }
+    }
+
+    func rowFits(
+        _ row: [WeatherTilesLayoutItem],
+        usableWidth: CGFloat
+    ) -> Bool {
+        let itemWidth = row.reduce(CGFloat.zero) {
+            $0 + min(max(.zero, $1.preferredWidth), usableWidth)
+        }
+        let spacingWidth = CGFloat(max(.zero, row.count - 1))
+            * metrics.horizontalSpacing
+
+        return itemWidth + spacingWidth <= usableWidth
+    }
+
+    func isMoreBalanced(
+        _ first: [[WeatherTilesLayoutItem]],
+        than second: [[WeatherTilesLayoutItem]]
+    ) -> Bool {
+        let firstCounts = first.map(\.count)
+        let secondCounts = second.map(\.count)
+        let firstRange = (firstCounts.max() ?? .zero)
+            - (firstCounts.min() ?? .zero)
+        let secondRange = (secondCounts.max() ?? .zero)
+            - (secondCounts.min() ?? .zero)
+
+        if firstRange != secondRange {
+            return firstRange < secondRange
+        }
+
+        // For equally balanced odd distributions, place the larger row first
+        // so later rows do not visually outweigh the beginning of the grid.
+        return firstCounts.lexicographicallyPrecedes(
+            secondCounts,
+            by: >
+        )
     }
 
     func fitsVertically(
