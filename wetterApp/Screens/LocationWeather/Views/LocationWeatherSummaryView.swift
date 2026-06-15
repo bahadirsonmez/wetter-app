@@ -6,7 +6,6 @@ final class LocationWeatherSummaryView: UIView {
     // MARK: - Subviews
 
     let locationLabel = UILabel()
-    let countryCodeLabel = UILabel()
     let temperatureLabel = UILabel()
     let conditionLabel = UILabel()
     let feelsLikeLabel = UILabel()
@@ -107,28 +106,29 @@ final class LocationWeatherSummaryView: UIView {
     // MARK: - Configuration
 
     func configure(with viewData: LocationWeatherViewData) {
-        locationLabel.text = viewData.locationName
-        countryCodeLabel.text = viewData.countryCode
+        if let countryCode = viewData.countryCode, !countryCode.isEmpty {
+            locationLabel.text = "\(viewData.locationName), \(countryCode)"
+        } else {
+            locationLabel.text = viewData.locationName
+        }
+        
         temperatureLabel.text = viewData.temperatureText
         conditionLabel.text = viewData.conditionText
         feelsLikeLabel.text = viewData.feelsLikeText
         humidityValueLabel.text = viewData.humidityText
 
-        countryCodeLabel.isHidden = viewData.countryCode == nil
         conditionLabel.isHidden = viewData.conditionText == nil
         invalidateIntrinsicContentSize()
     }
 
     func reset() {
         locationLabel.text = nil
-        countryCodeLabel.text = nil
         temperatureLabel.text = nil
         conditionLabel.text = nil
         feelsLikeLabel.text = nil
         humidityTitleLabel.text = "Humidity"
         humidityValueLabel.text = nil
 
-        countryCodeLabel.isHidden = true
         conditionLabel.isHidden = true
         invalidateIntrinsicContentSize()
     }
@@ -198,11 +198,6 @@ final class LocationWeatherSummaryView: UIView {
             alignment: .center
         )
         configure(
-            countryCodeLabel,
-            textStyle: .headline,
-            alignment: .center
-        )
-        configure(
             temperatureLabel,
             textStyle: .largeTitle,
             alignment: .center
@@ -240,7 +235,6 @@ final class LocationWeatherSummaryView: UIView {
         contentStackView.alignment = .fill
         contentStackView.spacing = 8
         contentStackView.addArrangedSubview(locationLabel)
-        contentStackView.addArrangedSubview(countryCodeLabel)
         contentStackView.addArrangedSubview(temperatureLabel)
         contentStackView.addArrangedSubview(conditionLabel)
         contentStackView.addArrangedSubview(feelsLikeLabel)

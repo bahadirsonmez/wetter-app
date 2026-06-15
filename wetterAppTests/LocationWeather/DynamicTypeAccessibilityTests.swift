@@ -236,7 +236,6 @@ private extension DynamicTypeAccessibilityTests {
     ) -> [UILabel] {
         [
             view.locationLabel,
-            view.countryCodeLabel,
             view.temperatureLabel,
             view.conditionLabel,
             view.feelsLikeLabel,
