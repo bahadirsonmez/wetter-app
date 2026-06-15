@@ -222,11 +222,15 @@ private extension AppSplitViewControllerTests {
         )
     }
 
-    func makeWeatherViewController() -> LocationWeatherViewController {
-        LocationWeatherViewController(
-            viewModel: LocationWeatherViewModelSpy(),
-            locationProvider: CurrentLocationProviderSpy(),
-            source: .current
+    func makeWeatherViewController() -> LocationWeatherPageViewController {
+        LocationWeatherPageViewController(
+            makeWeatherViewController: { source in
+                LocationWeatherViewController(
+                    viewModel: LocationWeatherViewModelSpy(),
+                    locationProvider: CurrentLocationProviderSpy(),
+                    source: source
+                )
+            }
         )
     }
 }

@@ -7,12 +7,12 @@ final class AppSplitViewController: UISplitViewController {
     let primaryNavigationController: UINavigationController
     let secondaryNavigationController: UINavigationController
 
-    var activeWeatherViewController: LocationWeatherViewController? {
+    var activeWeatherViewController: LocationWeatherPageViewController? {
         primaryNavigationController.viewControllers
-            .compactMap { $0 as? LocationWeatherViewController }
+            .compactMap { $0 as? LocationWeatherPageViewController }
             .last
             ?? secondaryNavigationController.viewControllers
-                .compactMap { $0 as? LocationWeatherViewController }
+                .compactMap { $0 as? LocationWeatherPageViewController }
                 .last
     }
 
@@ -37,7 +37,7 @@ final class AppSplitViewController: UISplitViewController {
     // MARK: - Public Methods
 
     func setWeatherViewController(
-        _ weatherViewController: LocationWeatherViewController
+        _ weatherViewController: LocationWeatherPageViewController
     ) {
         removeWeatherViewControllers(
             excluding: weatherViewController,
@@ -90,7 +90,7 @@ final class AppSplitViewController: UISplitViewController {
     // MARK: - Helpers
 
     private func appendWeatherIfNeeded(
-        _ weatherViewController: LocationWeatherViewController
+        _ weatherViewController: LocationWeatherPageViewController
     ) {
         guard primaryNavigationController.topViewController
                 !== weatherViewController
@@ -100,7 +100,7 @@ final class AppSplitViewController: UISplitViewController {
 
         primaryNavigationController.setViewControllers(
             primaryNavigationController.viewControllers
-                .filter { !($0 is LocationWeatherViewController) }
+                .filter { !($0 is LocationWeatherPageViewController) }
                 + [weatherViewController],
             animated: false
         )
@@ -134,12 +134,12 @@ final class AppSplitViewController: UISplitViewController {
     }
 
     private func removeWeatherViewControllers(
-        excluding preservedViewController: LocationWeatherViewController?,
+        excluding preservedViewController: LocationWeatherPageViewController?,
         from navigationController: UINavigationController
     ) {
         let filteredViewControllers = navigationController.viewControllers
             .filter { viewController in
-                guard viewController is LocationWeatherViewController else {
+                guard viewController is LocationWeatherPageViewController else {
                     return true
                 }
                 return viewController === preservedViewController
