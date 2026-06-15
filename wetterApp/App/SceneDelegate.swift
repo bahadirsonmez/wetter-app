@@ -12,6 +12,7 @@ import WeatherViewModel
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    var coordinator: AppCoordinator?
     private var hasBecomeActive = false
 
     func scene(
@@ -24,7 +25,26 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = makeRootViewController()
+        let navigationController = UINavigationController()
+        window.rootViewController = navigationController
+
+        do {
+            let configuration = try AppConfiguration()
+            let coordinator = AppCoordinator(
+                navigationController: navigationController,
+                weatherService: WeatherService(
+                    apiKey: configuration.openWeatherAPIKey
+                ),
+                locationsStore: UserDefaultsLocationsStore(),
+                locationSearchService: MapKitLocationSearchService(),
+                locationProviderFactory: { CurrentLocationProvider() }
+            )
+            coordinator.start()
+            self.coordinator = coordinator
+        } catch {
+            assertionFailure("App configuration failed: \(error)")
+        }
+
         window.makeKeyAndVisible()
         self.window = window
     }
@@ -39,29 +59,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
 
-        let viewController = window?.rootViewController
-            as? LocationWeatherViewController
-        viewController?.requestCurrentLocationAfterActivation()
-    }
-
-    private func makeRootViewController() -> UIViewController {
-        do {
-            let configuration = try AppConfiguration()
-            let weatherService = WeatherService(
-                apiKey: configuration.openWeatherAPIKey
-            )
-            let viewModel = LocationWeatherViewModel(
-                weatherService: weatherService
-            )
-            let locationProvider = CurrentLocationProvider()
-
-            return LocationWeatherViewController(
-                viewModel: viewModel,
-                locationProvider: locationProvider
-            )
-        } catch {
-            assertionFailure("App configuration failed: \(error)")
-            return UIViewController()
-        }
+        coordinator?.sceneDidBecomeActive()
     }
 }
