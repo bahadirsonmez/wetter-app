@@ -79,6 +79,8 @@ private extension IPadConfigurationTests {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
     }
 
     func appTargetBuildSettings() throws -> [[String: String]] {
