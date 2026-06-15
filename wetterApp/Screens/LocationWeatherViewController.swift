@@ -15,7 +15,7 @@ final class LocationWeatherViewController: UIViewController {
     // MARK: - Private Properties
 
     private let viewModel: any LocationWeatherViewModeling
-    let source: WeatherLocationSource
+    private let source: WeatherLocationSource
     // The controller coordinates location input with weather loading, keeping
     // the ViewModel independent from CoreLocation and focused on presentation.
     private let locationProvider: any CurrentLocationProviding
