@@ -1,10 +1,3 @@
-//
-//  TemperatureGraphCurveViewTests.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 14.06.2026.
-//
-
 import XCTest
 @testable import wetterApp
 
@@ -196,9 +189,9 @@ private extension TemperatureGraphCurveViewTests {
         minimumTemperature: Double,
         maximumTemperature: Double
     ) -> TemperatureGraphCurveGeometry {
-        TemperatureGraphCurveView.makeGeometry(
+        TemperatureGraphCurveGeometryCalculator(pointRadius: 4).makeGeometry(
             in: CGRect(x: 0, y: 0, width: 100, height: 80),
-            configuration: .init(
+            configuration: TemperatureGraphCurveConfiguration(
                 currentTemperature: currentTemperature,
                 previous2Temperature: previous2Temperature,
                 previousTemperature: previousTemperature,

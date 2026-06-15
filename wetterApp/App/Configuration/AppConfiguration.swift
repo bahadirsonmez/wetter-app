@@ -1,9 +1,5 @@
 import Foundation
 
-enum AppConfigurationError: Error, Equatable {
-    case missingOpenWeatherAPIKey
-}
-
 struct AppConfiguration {
 
     let openWeatherAPIKey: String
