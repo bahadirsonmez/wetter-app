@@ -7,6 +7,7 @@
 
 import CoreLocation
 import UIKit
+import WeatherModel
 import WeatherViewModel
 
 final class LocationWeatherViewController: UIViewController {
@@ -14,6 +15,7 @@ final class LocationWeatherViewController: UIViewController {
     // MARK: - Private Properties
 
     private let viewModel: any LocationWeatherViewModeling
+    let source: WeatherLocationSource
     // The controller coordinates location input with weather loading, keeping
     // the ViewModel independent from CoreLocation and focused on presentation.
     private let locationProvider: any CurrentLocationProviding
@@ -26,10 +28,12 @@ final class LocationWeatherViewController: UIViewController {
 
     init(
         viewModel: any LocationWeatherViewModeling,
-        locationProvider: any CurrentLocationProviding
+        locationProvider: any CurrentLocationProviding,
+        source: WeatherLocationSource
     ) {
         self.viewModel = viewModel
         self.locationProvider = locationProvider
+        self.source = source
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -47,10 +51,12 @@ final class LocationWeatherViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         bindViewModel()
-        bindLocationProvider()
+        if source == .current {
+            bindLocationProvider()
+        }
         bindActions()
         render(viewModel.state)
-        requestInitialLocation()
+        loadInitialWeather()
     }
 
     // MARK: - Binding
@@ -89,12 +95,27 @@ final class LocationWeatherViewController: UIViewController {
 
     // MARK: - Actions
 
-    private func requestInitialLocation() {
+    private func loadInitialWeather() {
+        switch source {
+        case .current:
+            requestCurrentLocation()
+        case let .saved(location):
+            viewModel.loadWeather(
+                latitude: location.latitude,
+                longitude: location.longitude
+            )
+        }
+    }
+
+    private func requestCurrentLocation() {
+        guard source == .current else {
+            return
+        }
         locationProvider.requestCurrentLocation()
     }
 
     func requestCurrentLocationAfterActivation() {
-        locationProvider.requestCurrentLocation()
+        requestCurrentLocation()
     }
 
     @objc
@@ -200,7 +221,7 @@ final class LocationWeatherViewController: UIViewController {
                 message: "Your current location could not be determined.",
                 actionTitle: "Retry",
                 onAction: { [weak self] in
-                    self?.requestInitialLocation()
+                    self?.requestCurrentLocation()
                 }
             )
         }

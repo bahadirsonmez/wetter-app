@@ -15,7 +15,8 @@ final class LocationWeatherScreenLifecycleTests: XCTestCase {
             var viewController: LocationWeatherViewController? =
                 LocationWeatherViewController(
                     viewModel: viewModel,
-                    locationProvider: locationProvider
+                    locationProvider: locationProvider,
+                    source: .current
                 )
             viewController?.loadViewIfNeeded()
             weakViewController = viewController
@@ -34,7 +35,8 @@ final class LocationWeatherScreenLifecycleTests: XCTestCase {
             var viewController: LocationWeatherViewController? =
                 LocationWeatherViewController(
                     viewModel: viewModel,
-                    locationProvider: locationProvider
+                    locationProvider: locationProvider,
+                    source: .current
                 )
             viewController?.loadViewIfNeeded()
             weakViewController = viewController
@@ -54,7 +56,8 @@ final class LocationWeatherScreenLifecycleTests: XCTestCase {
             var viewController: LocationWeatherViewController? =
                 LocationWeatherViewController(
                     viewModel: viewModel,
-                    locationProvider: locationProvider
+                    locationProvider: locationProvider,
+                    source: .current
                 )
             viewController?.loadViewIfNeeded()
             weakViewController = viewController

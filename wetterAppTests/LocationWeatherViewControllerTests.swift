@@ -1,4 +1,5 @@
 import CoreLocation
+import WeatherModel
 import WeatherViewModel
 import XCTest
 @testable import wetterApp
@@ -46,6 +47,42 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertEqual(context.viewModel.receivedLatitude, 52.52)
         XCTAssertEqual(context.viewModel.receivedLongitude, 13.405)
+    }
+
+    func testSavedLocationLoadsWeatherWithoutRequestingCurrentLocation() {
+        let location = SavedLocation(
+            id: UUID(),
+            name: "Berlin",
+            state: "Berlin",
+            countryCode: "DE",
+            latitude: 52.52,
+            longitude: 13.405
+        )
+        let context = makeContext(source: .saved(location))
+
+        context.viewController.loadViewIfNeeded()
+
+        XCTAssertEqual(context.viewModel.receivedLatitude, 52.52)
+        XCTAssertEqual(context.viewModel.receivedLongitude, 13.405)
+        XCTAssertEqual(context.locationProvider.requestCallCount, 0)
+        XCTAssertNil(context.locationProvider.onLocationResult)
+    }
+
+    func testSavedLocationDoesNotRequestLocationAfterActivation() {
+        let location = SavedLocation(
+            id: UUID(),
+            name: "Berlin",
+            state: nil,
+            countryCode: "DE",
+            latitude: 52.52,
+            longitude: 13.405
+        )
+        let context = makeContext(source: .saved(location))
+        context.viewController.loadViewIfNeeded()
+
+        context.viewController.requestCurrentLocationAfterActivation()
+
+        XCTAssertEqual(context.locationProvider.requestCallCount, 0)
     }
 
     func testInitialLoadingShowsFullScreenLoadingView() {
@@ -473,12 +510,15 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeContext() -> TestContext {
+    private func makeContext(
+        source: WeatherLocationSource = .current
+    ) -> TestContext {
         let viewModel = LocationWeatherViewModelSpy()
         let locationProvider = CurrentLocationProviderSpy()
         let viewController = LocationWeatherViewController(
             viewModel: viewModel,
-            locationProvider: locationProvider
+            locationProvider: locationProvider,
+            source: source
         )
 
         return TestContext(
