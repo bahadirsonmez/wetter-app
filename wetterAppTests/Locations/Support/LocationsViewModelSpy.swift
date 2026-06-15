@@ -7,6 +7,7 @@ final class LocationsViewModelSpy: LocationsViewModeling {
     var items: [LocationsListItemViewData] = []
     var onItemsChange: (([LocationsListItemViewData]) -> Void)?
     var onLocationSelected: ((LocationsListItemIdentifier) -> Void)?
+    var onLocationDeleted: ((UUID) -> Void)?
     var onError: ((LocationsViewError) -> Void)?
 
     private(set) var loadLocationsCallCount = 0
@@ -26,6 +27,7 @@ final class LocationsViewModelSpy: LocationsViewModeling {
 
     func deleteLocation(id: UUID) {
         deletedLocationIDs.append(id)
+        onLocationDeleted?(id)
     }
 
     func moveLocation(fromSavedIndex: Int, toSavedIndex: Int) {

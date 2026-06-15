@@ -6,11 +6,33 @@ import XCTest
 @MainActor
 final class SceneDelegateTests: XCTestCase {
 
+    func testRootControllerIsAppSplitViewController() {
+        let sceneDelegate = SceneDelegate()
+
+        let rootViewController = sceneDelegate.makeRootViewController()
+
+        XCTAssertTrue(
+            rootViewController.viewController(for: .primary)
+                === rootViewController.primaryNavigationController
+        )
+        XCTAssertTrue(
+            rootViewController.viewController(for: .secondary)
+                === rootViewController.secondaryNavigationController
+        )
+    }
+
     func testSecondSceneActivationRequestsCurrentLocationAgain() {
         let locationProvider = CurrentLocationProviderSpy()
-        let navigationController = UINavigationController()
+        let primaryNavigationController = UINavigationController()
+        let secondaryNavigationController = UINavigationController()
+        let splitViewController = AppSplitViewController(
+            primaryNavigationController: primaryNavigationController,
+            secondaryNavigationController: secondaryNavigationController
+        )
         let coordinator = AppCoordinator(
-            navigationController: navigationController,
+            splitViewController: splitViewController,
+            primaryNavigationController: primaryNavigationController,
+            secondaryNavigationController: secondaryNavigationController,
             weatherService: SceneWeatherService(),
             locationsStore: SceneLocationsStore(),
             locationSearchService: SceneLocationSearchService(),
@@ -19,7 +41,7 @@ final class SceneDelegateTests: XCTestCase {
         coordinator.start()
         let sceneDelegate = SceneDelegate()
         sceneDelegate.coordinator = coordinator
-        navigationController.topViewController?.loadViewIfNeeded()
+        coordinator.activeWeatherViewController?.loadViewIfNeeded()
 
         sceneDelegate.handleSceneDidBecomeActive()
         XCTAssertEqual(locationProvider.requestCallCount, 1)

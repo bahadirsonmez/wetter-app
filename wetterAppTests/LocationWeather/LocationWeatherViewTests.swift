@@ -34,16 +34,16 @@ final class LocationWeatherViewTests: XCTestCase {
         XCTAssertTrue(view.scrollView.alwaysBounceVertical)
     }
 
-    func testScrollViewUsesSafeAreaForVerticalViewport() {
+    func testScrollViewUsesSafeAreaForViewport() {
         let view = LocationWeatherView()
-        let verticalConstraints = view.constraints.filter {
+        let viewportConstraints = view.constraints.filter {
             $0.firstItem === view.scrollView
-                && ($0.firstAttribute == .top || $0.firstAttribute == .bottom)
+                && ($0.firstAttribute == .top || $0.firstAttribute == .bottom || $0.firstAttribute == .leading || $0.firstAttribute == .trailing)
         }
 
-        XCTAssertEqual(verticalConstraints.count, 2)
+        XCTAssertEqual(viewportConstraints.count, 4)
         XCTAssertTrue(
-            verticalConstraints.allSatisfy {
+            viewportConstraints.allSatisfy {
                 $0.secondItem === view.safeAreaLayoutGuide
             }
         )
