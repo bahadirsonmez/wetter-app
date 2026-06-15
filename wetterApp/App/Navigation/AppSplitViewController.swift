@@ -39,6 +39,8 @@ final class AppSplitViewController: UISplitViewController {
     func setWeatherViewController(
         _ weatherViewController: LocationWeatherPageViewController
     ) {
+        // Split collapse/expand moves the same controller instance between
+        // columns, so cleanup has to be identity-based instead of stack-based.
         removeWeatherViewControllers(
             excluding: weatherViewController,
             from: primaryNavigationController
@@ -66,7 +68,7 @@ final class AppSplitViewController: UISplitViewController {
         }
     }
 
-    // MARK: - Setup
+    // MARK: - Private Methods
 
     private func configureSplitView() {
         preferredDisplayMode = .oneBesideSecondary
@@ -86,8 +88,6 @@ final class AppSplitViewController: UISplitViewController {
             for: .secondary
         )
     }
-
-    // MARK: - Helpers
 
     private func appendWeatherIfNeeded(
         _ weatherViewController: LocationWeatherPageViewController
@@ -167,6 +167,8 @@ extension AppSplitViewController: UISplitViewControllerDelegate {
         topColumnForCollapsingToProposedTopColumn proposedTopColumn:
             UISplitViewController.Column
     ) -> UISplitViewController.Column {
+        // Compact launches should land on weather first, while Back still
+        // reveals the primary Locations stack.
         .secondary
     }
 
@@ -183,6 +185,8 @@ extension AppSplitViewController: UISplitViewControllerDelegate {
         _ splitViewController: UISplitViewController,
         separateSecondaryFrom primaryViewController: UIViewController
     ) -> UIViewController? {
+        // Search may still be open in primary; only the weather controller
+        // should move back to detail during expansion.
         moveWeatherToSecondary()
         return secondaryNavigationController
     }

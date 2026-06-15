@@ -1,10 +1,3 @@
-//
-//  LocationWeatherPageViewController.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 15.06.2026.
-//
-
 import UIKit
 
 final class LocationWeatherPageViewController: UIViewController {

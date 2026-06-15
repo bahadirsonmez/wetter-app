@@ -25,11 +25,13 @@ public final class LocationsViewModel: LocationsViewModeling {
 
     // MARK: - Public Methods
 
+    /// Loads the saved locations and updates the items.
     public func loadLocations() {
         snapshot = store.loadSnapshot()
         publishItems()
     }
 
+    /// Selects a location by identifier.
     public func selectLocation(id: LocationsListItemIdentifier) {
         let selectedLocationID: UUID?
 
@@ -55,6 +57,7 @@ public final class LocationsViewModel: LocationsViewModeling {
         onLocationSelected?(id)
     }
 
+    /// Deletes a location from the saved list.
     public func deleteLocation(id: UUID) {
         guard snapshot.locations.contains(where: { $0.id == id }) else {
             return
@@ -75,6 +78,7 @@ public final class LocationsViewModel: LocationsViewModeling {
         onLocationDeleted?(id)
     }
 
+    /// Moves a location from one index to another.
     public func moveLocation(
         fromSavedIndex: Int,
         toSavedIndex: Int

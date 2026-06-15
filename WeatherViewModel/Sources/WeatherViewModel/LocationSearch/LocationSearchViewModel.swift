@@ -52,6 +52,7 @@ public final class LocationSearchViewModel: LocationSearchViewModeling {
 
     // MARK: - Public Methods
 
+    /// Performs a search for locations matching the given query.
     public func search(query: String) {
         currentTask?.cancel()
         searchGeneration += 1
@@ -104,6 +105,7 @@ public final class LocationSearchViewModel: LocationSearchViewModeling {
         }
     }
 
+    /// Selects a search result at the specified index and saves it to the store.
     public func selectResult(at index: Int) {
         guard searchResults.indices.contains(index) else {
             return

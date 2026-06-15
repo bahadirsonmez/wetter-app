@@ -1,10 +1,3 @@
-//
-//  SceneDelegate.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 08.06.26.
-//
-
 import UIKit
 import WeatherModel
 import WeatherViewModel
