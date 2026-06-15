@@ -11,13 +11,14 @@ final class LocationWeatherPageViewController: UIViewController {
 
     // MARK: - Dependencies
 
-    private let pageViewController: UIPageViewController
-    private let pageControl: UIPageControl
+    let pageViewController: UIPageViewController
+    let pageControl: UIPageControl
     private let makeWeatherViewController: (WeatherLocationSource) -> LocationWeatherViewController
 
     // MARK: - State
 
     private(set) var sources: [WeatherLocationSource] = []
+    var onSourceChange: ((WeatherLocationSource) -> Void)?
 
     // MARK: - Initialization
 
@@ -120,7 +121,7 @@ final class LocationWeatherPageViewController: UIViewController {
     // MARK: - Actions
 
     @objc
-    private func pageControlChanged() {
+    func pageControlChanged() {
         let index = pageControl.currentPage
         guard sources.indices.contains(index) else {
             return
@@ -139,6 +140,7 @@ final class LocationWeatherPageViewController: UIViewController {
             animated: true,
             completion: nil
         )
+        onSourceChange?(targetSource)
     }
 }
 
@@ -196,5 +198,6 @@ extension LocationWeatherPageViewController: UIPageViewControllerDelegate {
         }
 
         pageControl.currentPage = index
+        onSourceChange?(weatherVC.source)
     }
 }
