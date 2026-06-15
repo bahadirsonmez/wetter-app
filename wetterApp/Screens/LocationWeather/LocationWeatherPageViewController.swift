@@ -70,7 +70,6 @@ final class LocationWeatherPageViewController: UIViewController {
         // Ensure page control is visible on different backgrounds
         pageControl.pageIndicatorTintColor = .systemGray3
         pageControl.currentPageIndicatorTintColor = .label
-        pageControl.currentPage = 0
 
         NSLayoutConstraint.activate([
             pageViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
@@ -99,7 +98,7 @@ final class LocationWeatherPageViewController: UIViewController {
         pageControl.currentPage = targetIndex
 
         if let currentVC = currentWeatherViewController, currentVC.source == selectedSource {
-            // Already displaying the correct source, skip updating page view controller to avoid flickering
+            reloadPageNavigation()
             return
         }
 
@@ -116,6 +115,18 @@ final class LocationWeatherPageViewController: UIViewController {
 
     var currentWeatherViewController: LocationWeatherViewController? {
         pageViewController.viewControllers?.first as? LocationWeatherViewController
+    }
+
+    // UIPageViewController caches whether adjacent pages exist. Resetting its
+    // data source makes newly added or removed locations immediately swipeable
+    // without replacing the currently displayed weather controller.
+    private func reloadPageNavigation() {
+        guard isViewLoaded else {
+            return
+        }
+
+        pageViewController.dataSource = nil
+        pageViewController.dataSource = self
     }
 
     // MARK: - Actions
