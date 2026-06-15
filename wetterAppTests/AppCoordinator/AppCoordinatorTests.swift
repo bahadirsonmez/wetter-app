@@ -7,22 +7,26 @@ import XCTest
 @MainActor
 final class AppCoordinatorTests: XCTestCase {
 
-    func testStartPlacesLocationsFirstAndCurrentWeatherOnTop() {
+    func testStartPlacesLocationsInPrimaryAndCurrentWeatherInSecondary() {
         let context = makeContext()
 
         context.coordinator.start()
 
         XCTAssertTrue(
-            context.navigationController.viewControllers.first
+            context.primaryNavigationController.viewControllers.first
                 is LocationsViewController
         )
-        let weatherViewController = context.navigationController
-            .topViewController as? LocationWeatherViewController
-        XCTAssertEqual(weatherViewController?.source, .current)
-        XCTAssertEqual(context.navigationController.viewControllers.count, 2)
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .current
+        )
+        XCTAssertEqual(
+            context.secondaryNavigationController.viewControllers.count,
+            1
+        )
     }
 
-    func testStartOpensLastViewedSavedLocation() {
+    func testStartOpensLastViewedSavedLocationInSecondary() {
         let location = makeLocation(name: "Berlin")
         let context = makeContext(
             snapshot: SavedLocationsSnapshot(
@@ -33,9 +37,10 @@ final class AppCoordinatorTests: XCTestCase {
 
         context.coordinator.start()
 
-        let weatherViewController = context.navigationController
-            .topViewController as? LocationWeatherViewController
-        XCTAssertEqual(weatherViewController?.source, .saved(location))
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .saved(location)
+        )
     }
 
     func testStartWithInvalidSavedLocationIDFallsBackToCurrentLocation() {
@@ -48,12 +53,13 @@ final class AppCoordinatorTests: XCTestCase {
 
         context.coordinator.start()
 
-        let weatherViewController = context.navigationController
-            .topViewController as? LocationWeatherViewController
-        XCTAssertEqual(weatherViewController?.source, .current)
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .current
+        )
     }
 
-    func testSelectingSavedLocationUpdatesSnapshotAndShowsItsWeather() throws {
+    func testSelectingSavedLocationUpdatesSnapshotAndReplacesDetail() throws {
         let location = makeLocation(name: "Berlin")
         let context = makeContext(
             snapshot: SavedLocationsSnapshot(
@@ -62,11 +68,9 @@ final class AppCoordinatorTests: XCTestCase {
             )
         )
         context.coordinator.start()
-        let locationsViewController = try XCTUnwrap(
-            context.navigationController.viewControllers[0]
-                as? LocationsViewController
-        )
-        locationsViewController.loadViewIfNeeded()
+        let originalWeatherViewController =
+            context.coordinator.activeWeatherViewController
+        let locationsViewController = try locationsViewController(in: context)
 
         locationsViewController.tableView(
             locationsViewController.tableView,
@@ -77,9 +81,18 @@ final class AppCoordinatorTests: XCTestCase {
             context.store.snapshot.lastViewedLocationID,
             location.id
         )
-        let weatherViewController = context.navigationController
-            .topViewController as? LocationWeatherViewController
-        XCTAssertEqual(weatherViewController?.source, .saved(location))
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .saved(location)
+        )
+        XCTAssertFalse(
+            context.coordinator.activeWeatherViewController
+                === originalWeatherViewController
+        )
+        XCTAssertEqual(
+            context.secondaryNavigationController.viewControllers.count,
+            1
+        )
     }
 
     func testSelectingCurrentLocationClearsLastViewedLocationID() throws {
@@ -91,12 +104,7 @@ final class AppCoordinatorTests: XCTestCase {
             )
         )
         context.coordinator.start()
-        context.navigationController.popToRootViewController(animated: false)
-        let locationsViewController = try XCTUnwrap(
-            context.navigationController.topViewController
-                as? LocationsViewController
-        )
-        locationsViewController.loadViewIfNeeded()
+        let locationsViewController = try locationsViewController(in: context)
 
         locationsViewController.tableView(
             locationsViewController.tableView,
@@ -104,9 +112,40 @@ final class AppCoordinatorTests: XCTestCase {
         )
 
         XCTAssertNil(context.store.snapshot.lastViewedLocationID)
-        let weatherViewController = context.navigationController
-            .topViewController as? LocationWeatherViewController
-        XCTAssertEqual(weatherViewController?.source, .current)
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .current
+        )
+    }
+
+    func testRepeatedSelectionDoesNotStackWeatherControllers() throws {
+        let location = makeLocation(name: "Berlin")
+        let context = makeContext(
+            snapshot: SavedLocationsSnapshot(
+                locations: [location],
+                lastViewedLocationID: nil
+            )
+        )
+        context.coordinator.start()
+        let locationsViewController = try locationsViewController(in: context)
+
+        for _ in 0..<3 {
+            locationsViewController.tableView(
+                locationsViewController.tableView,
+                didSelectRowAt: IndexPath(row: 1, section: 0)
+            )
+        }
+
+        XCTAssertEqual(
+            context.secondaryNavigationController.viewControllers
+                .filter { $0 is LocationWeatherViewController }
+                .count,
+            1
+        )
+        XCTAssertFalse(
+            context.primaryNavigationController.viewControllers
+                .contains { $0 is LocationWeatherViewController }
+        )
     }
 
     func testSavedLocationDoesNotRequestCurrentLocation() {
@@ -119,36 +158,43 @@ final class AppCoordinatorTests: XCTestCase {
         )
         context.coordinator.start()
 
-        context.navigationController.topViewController?.loadViewIfNeeded()
+        context.coordinator.activeWeatherViewController?.loadViewIfNeeded()
 
         XCTAssertEqual(context.locationProvider.requestCallCount, 0)
     }
 
-    func testSearchResultAdditionRefreshesLocationsAndReturnsToList() throws {
+    func testSearchIsPushedOnPrimaryAndAdditionPreservesWeather() throws {
         let context = makeContext()
         context.coordinator.start()
-        context.navigationController.popToRootViewController(animated: false)
-        let locationsViewController = try XCTUnwrap(
-            context.navigationController.topViewController
-                as? LocationsViewController
-        )
-        locationsViewController.loadViewIfNeeded()
+        let weatherViewController =
+            try XCTUnwrap(context.coordinator.activeWeatherViewController)
+        let locationsViewController = try locationsViewController(in: context)
+
         locationsViewController.onAddLocation?()
+
+        let searchViewController = try XCTUnwrap(
+            context.primaryNavigationController.topViewController
+                as? LocationSearchViewController
+        )
+        XCTAssertFalse(
+            context.secondaryNavigationController.viewControllers
+                .contains { $0 is LocationSearchViewController }
+        )
+
         let location = makeLocation(name: "Berlin")
         context.store.snapshot = SavedLocationsSnapshot(
             locations: [location],
             lastViewedLocationID: nil
         )
-
-        let searchViewController = try XCTUnwrap(
-            context.navigationController.topViewController
-                as? LocationSearchViewController
-        )
         searchViewController.onLocationAdded?()
 
         XCTAssertTrue(
-            context.navigationController.topViewController
+            context.primaryNavigationController.topViewController
                 is LocationsViewController
+        )
+        XCTAssertTrue(
+            context.coordinator.activeWeatherViewController
+                === weatherViewController
         )
         XCTAssertEqual(
             locationsViewController.tableView.numberOfRows(inSection: 0),
@@ -156,10 +202,60 @@ final class AppCoordinatorTests: XCTestCase {
         )
     }
 
+    func testDeletingActiveSavedLocationShowsCurrentLocation() throws {
+        let location = makeLocation(name: "Berlin")
+        let context = makeContext(
+            snapshot: SavedLocationsSnapshot(
+                locations: [location],
+                lastViewedLocationID: location.id
+            )
+        )
+        context.coordinator.start()
+        let locationsViewController = try locationsViewController(in: context)
+
+        locationsViewController.tableView(
+            locationsViewController.tableView,
+            commit: .delete,
+            forRowAt: IndexPath(row: 1, section: 0)
+        )
+
+        XCTAssertEqual(
+            context.coordinator.activeWeatherViewController?.source,
+            .current
+        )
+    }
+
+    func testDeletingInactiveSavedLocationPreservesDetail() throws {
+        let berlin = makeLocation(name: "Berlin")
+        let hamburg = makeLocation(name: "Hamburg")
+        let context = makeContext(
+            snapshot: SavedLocationsSnapshot(
+                locations: [berlin, hamburg],
+                lastViewedLocationID: berlin.id
+            )
+        )
+        context.coordinator.start()
+        let weatherViewController =
+            try XCTUnwrap(context.coordinator.activeWeatherViewController)
+        let locationsViewController = try locationsViewController(in: context)
+
+        locationsViewController.tableView(
+            locationsViewController.tableView,
+            commit: .delete,
+            forRowAt: IndexPath(row: 2, section: 0)
+        )
+
+        XCTAssertTrue(
+            context.coordinator.activeWeatherViewController
+                === weatherViewController
+        )
+        XCTAssertEqual(weatherViewController.source, .saved(berlin))
+    }
+
     func testSceneActivationRefreshesOnlyCurrentLocationWeather() {
         let currentContext = makeContext()
         currentContext.coordinator.start()
-        currentContext.navigationController.topViewController?
+        currentContext.coordinator.activeWeatherViewController?
             .loadViewIfNeeded()
 
         currentContext.coordinator.sceneDidBecomeActive()
@@ -177,7 +273,7 @@ final class AppCoordinatorTests: XCTestCase {
             )
         )
         savedContext.coordinator.start()
-        savedContext.navigationController.topViewController?
+        savedContext.coordinator.activeWeatherViewController?
             .loadViewIfNeeded()
 
         savedContext.coordinator.sceneDidBecomeActive()
@@ -187,6 +283,7 @@ final class AppCoordinatorTests: XCTestCase {
             0
         )
     }
+
 }
 
 // MARK: - Helpers
@@ -195,7 +292,9 @@ private extension AppCoordinatorTests {
 
     struct Context {
         let coordinator: AppCoordinator
-        let navigationController: UINavigationController
+        let splitViewController: AppSplitViewController
+        let primaryNavigationController: UINavigationController
+        let secondaryNavigationController: UINavigationController
         let store: CoordinatorLocationsStore
         let locationProvider: CurrentLocationProviderSpy
     }
@@ -203,11 +302,18 @@ private extension AppCoordinatorTests {
     func makeContext(
         snapshot: SavedLocationsSnapshot = .empty
     ) -> Context {
-        let navigationController = UINavigationController()
+        let primaryNavigationController = UINavigationController()
+        let secondaryNavigationController = UINavigationController()
+        let splitViewController = AppSplitViewController(
+            primaryNavigationController: primaryNavigationController,
+            secondaryNavigationController: secondaryNavigationController
+        )
         let store = CoordinatorLocationsStore(snapshot: snapshot)
         let locationProvider = CurrentLocationProviderSpy()
         let coordinator = AppCoordinator(
-            navigationController: navigationController,
+            splitViewController: splitViewController,
+            primaryNavigationController: primaryNavigationController,
+            secondaryNavigationController: secondaryNavigationController,
             weatherService: CoordinatorWeatherService(),
             locationsStore: store,
             locationSearchService: CoordinatorLocationSearchService(),
@@ -215,10 +321,23 @@ private extension AppCoordinatorTests {
         )
         return Context(
             coordinator: coordinator,
-            navigationController: navigationController,
+            splitViewController: splitViewController,
+            primaryNavigationController: primaryNavigationController,
+            secondaryNavigationController: secondaryNavigationController,
             store: store,
             locationProvider: locationProvider
         )
+    }
+
+    func locationsViewController(
+        in context: Context
+    ) throws -> LocationsViewController {
+        let viewController = try XCTUnwrap(
+            context.primaryNavigationController.viewControllers.first
+                as? LocationsViewController
+        )
+        viewController.loadViewIfNeeded()
+        return viewController
     }
 
     func makeLocation(name: String) -> SavedLocation {

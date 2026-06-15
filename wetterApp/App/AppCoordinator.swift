@@ -8,7 +8,9 @@ nonisolated final class AppCoordinator {
 
     // MARK: - Dependencies
 
-    let navigationController: UINavigationController
+    let splitViewController: AppSplitViewController
+    let primaryNavigationController: UINavigationController
+    let secondaryNavigationController: UINavigationController
 
     private let weatherService: any WeatherFetching
     private let locationsStore: any LocationsStoring
@@ -18,19 +20,22 @@ nonisolated final class AppCoordinator {
     // MARK: - Properties
 
     private var locationsViewModel: LocationsViewModel?
-    private var locationsViewController: LocationsViewController?
 
     // MARK: - Initialization
 
     @MainActor
     init(
-        navigationController: UINavigationController,
+        splitViewController: AppSplitViewController,
+        primaryNavigationController: UINavigationController,
+        secondaryNavigationController: UINavigationController,
         weatherService: any WeatherFetching,
         locationsStore: any LocationsStoring,
         locationSearchService: any LocationSearching,
         locationProviderFactory: @escaping () -> any CurrentLocationProviding
     ) {
-        self.navigationController = navigationController
+        self.splitViewController = splitViewController
+        self.primaryNavigationController = primaryNavigationController
+        self.secondaryNavigationController = secondaryNavigationController
         self.weatherService = weatherService
         self.locationsStore = locationsStore
         self.locationSearchService = locationSearchService
@@ -46,7 +51,6 @@ nonisolated final class AppCoordinator {
             viewModel: locationsViewModel
         )
         self.locationsViewModel = locationsViewModel
-        self.locationsViewController = locationsViewController
 
         locationsViewController.onAddLocation = { [weak self] in
             self?.showLocationSearch()
@@ -54,8 +58,11 @@ nonisolated final class AppCoordinator {
         locationsViewModel.onLocationSelected = { [weak self] identifier in
             self?.showWeather(for: identifier)
         }
+        locationsViewModel.onLocationDeleted = { [weak self] id in
+            self?.handleDeletedLocation(id: id)
+        }
 
-        navigationController.setViewControllers(
+        primaryNavigationController.setViewControllers(
             [locationsViewController],
             animated: false
         )
@@ -64,9 +71,14 @@ nonisolated final class AppCoordinator {
 
     @MainActor
     func sceneDidBecomeActive() {
-        let weatherViewController = navigationController.topViewController
-            as? LocationWeatherViewController
-        weatherViewController?.requestCurrentLocationAfterActivation()
+        guard activeWeatherViewController?.source == .current else {
+            return
+        }
+        activeWeatherViewController?.requestCurrentLocationAfterActivation()
+    }
+
+    var activeWeatherViewController: LocationWeatherViewController? {
+        splitViewController.activeWeatherViewController
     }
 
     // MARK: - Navigation
@@ -108,11 +120,9 @@ nonisolated final class AppCoordinator {
     }
 
     @MainActor
-    private func showWeather(source: WeatherLocationSource) {
-        guard let locationsViewController else {
-            return
-        }
-
+    private func makeWeatherViewController(
+        source: WeatherLocationSource
+    ) -> LocationWeatherViewController {
         let weatherViewModel = LocationWeatherViewModel(
             weatherService: weatherService
         )
@@ -121,10 +131,13 @@ nonisolated final class AppCoordinator {
             locationProvider: locationProviderFactory(),
             source: source
         )
+        return weatherViewController
+    }
 
-        navigationController.setViewControllers(
-            [locationsViewController, weatherViewController],
-            animated: false
+    @MainActor
+    private func showWeather(source: WeatherLocationSource) {
+        splitViewController.setWeatherViewController(
+            makeWeatherViewController(source: source)
         )
     }
 
@@ -143,11 +156,23 @@ nonisolated final class AppCoordinator {
             }
 
             locationsViewModel?.loadLocations()
-            navigationController.popViewController(animated: true)
+            primaryNavigationController.popViewController(animated: true)
         }
-        navigationController.pushViewController(
+        primaryNavigationController.pushViewController(
             searchViewController,
             animated: true
         )
+    }
+
+    @MainActor
+    private func handleDeletedLocation(id: UUID) {
+        guard
+            case let .saved(location) = activeWeatherViewController?.source,
+            location.id == id
+        else {
+            return
+        }
+
+        showWeather(source: .current)
     }
 }

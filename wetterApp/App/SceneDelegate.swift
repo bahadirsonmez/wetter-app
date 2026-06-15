@@ -25,13 +25,17 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
 
         let window = UIWindow(windowScene: windowScene)
-        let navigationController = UINavigationController()
-        window.rootViewController = navigationController
+        let splitViewController = makeRootViewController()
+        window.rootViewController = splitViewController
 
         do {
             let configuration = try AppConfiguration()
             let coordinator = AppCoordinator(
-                navigationController: navigationController,
+                splitViewController: splitViewController,
+                primaryNavigationController:
+                    splitViewController.primaryNavigationController,
+                secondaryNavigationController:
+                    splitViewController.secondaryNavigationController,
                 weatherService: WeatherService(
                     apiKey: configuration.openWeatherAPIKey
                 ),
@@ -60,5 +64,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
 
         coordinator?.sceneDidBecomeActive()
+    }
+
+    func makeRootViewController() -> AppSplitViewController {
+        AppSplitViewController(
+            primaryNavigationController: UINavigationController(),
+            secondaryNavigationController: UINavigationController()
+        )
     }
 }

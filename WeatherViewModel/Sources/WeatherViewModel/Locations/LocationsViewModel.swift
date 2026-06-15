@@ -9,6 +9,7 @@ public final class LocationsViewModel: LocationsViewModeling {
     public private(set) var items: [LocationsListItemViewData] = []
     public var onItemsChange: (([LocationsListItemViewData]) -> Void)?
     public var onLocationSelected: ((LocationsListItemIdentifier) -> Void)?
+    public var onLocationDeleted: ((UUID) -> Void)?
     public var onError: ((LocationsViewError) -> Void)?
 
     // MARK: - Private Properties
@@ -71,6 +72,7 @@ public final class LocationsViewModel: LocationsViewModeling {
         }
 
         publishItems()
+        onLocationDeleted?(id)
     }
 
     public func moveLocation(
