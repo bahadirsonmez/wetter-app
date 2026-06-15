@@ -6,6 +6,9 @@ public final class WeatherService: WeatherFetching {
     private let session: URLSession
     private let baseURL: String
 
+    private let cache = DataCache()
+    private let cacheMaxAge: TimeInterval = 300 // 5 minutes
+
     public init(
         apiKey: String,
         session: URLSession = .shared,
@@ -50,6 +53,15 @@ public final class WeatherService: WeatherFetching {
             throw NetworkError.invalidURL
         }
 
+        let cacheKey = url.absoluteString
+        if let cachedData = await cache.get(for: cacheKey, maxAge: cacheMaxAge) {
+            do {
+                return try JSONDecoder().decode(Response.self, from: cachedData)
+            } catch {
+                // Ignore decoding error from cache and fetch fresh
+            }
+        }
+
         do {
             let (data, response) = try await session.data(from: url)
 
@@ -66,7 +78,9 @@ public final class WeatherService: WeatherFetching {
             }
 
             do {
-                return try JSONDecoder().decode(Response.self, from: data)
+                let decoded = try JSONDecoder().decode(Response.self, from: data)
+                await cache.set(data, for: cacheKey)
+                return decoded
             } catch {
                 throw NetworkError.decodingFailed
             }
@@ -109,3 +123,5 @@ public final class WeatherService: WeatherFetching {
         return components.url
     }
 }
+
+

@@ -79,6 +79,53 @@ final class WeatherServiceTests: XCTestCase {
         await assertFetchThrows(.invalidURL, using: service)
     }
 
+    func testFetchCurrentWeatherCachesResponse() async throws {
+        var requestCount = 0
+        URLProtocolStub.requestHandler = { request in
+            requestCount += 1
+            let response = try XCTUnwrap(
+                HTTPURLResponse(
+                    url: try XCTUnwrap(request.url),
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
+            return (response, Data(WeatherModelFixtures.currentWeatherJSON.utf8))
+        }
+
+        let service = makeService()
+        
+        _ = try await service.fetchCurrentWeather(latitude: 52.52, longitude: 13.405)
+        XCTAssertEqual(requestCount, 1)
+
+        _ = try await service.fetchCurrentWeather(latitude: 52.52, longitude: 13.405)
+        XCTAssertEqual(requestCount, 1, "Should use cached response without triggering a network request")
+    }
+
+    func testDataCacheStoresAndRetrievesData() async {
+        let cache = DataCache()
+        let data = Data("test".utf8)
+        await cache.set(data, for: "key")
+        
+        let retrieved = await cache.get(for: "key", maxAge: 100)
+        XCTAssertEqual(retrieved, data)
+    }
+
+    func testDataCacheExpiresData() async {
+        var currentDate = Date(timeIntervalSince1970: 0)
+        let cache = DataCache(dateProvider: { currentDate })
+        let data = Data("test".utf8)
+        
+        await cache.set(data, for: "key")
+        
+        // advance time by 6 minutes (360 seconds)
+        currentDate = currentDate.addingTimeInterval(360)
+        
+        let retrieved = await cache.get(for: "key", maxAge: 300)
+        XCTAssertNil(retrieved)
+    }
+
     private func makeService() -> WeatherService {
         WeatherService(
             apiKey: "test-api-key",
