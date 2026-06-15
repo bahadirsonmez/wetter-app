@@ -33,10 +33,7 @@
 			membershipExceptions = (
 				Config/App.xcconfig,
 				Config/Secrets.xcconfig.example,
-				Extensions/.gitkeep,
 				Info.plist,
-				Utils/.gitkeep,
-				Views/.gitkeep,
 			);
 			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
 		};

@@ -43,5 +43,6 @@ private extension WeatherTilesSourcePolicyTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
+            .deletingLastPathComponent()
     }
 }
