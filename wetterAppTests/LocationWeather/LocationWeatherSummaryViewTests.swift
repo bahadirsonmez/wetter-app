@@ -10,14 +10,12 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
 
         view.configure(with: LocationWeatherViewDataFixture.berlin())
 
-        XCTAssertEqual(view.locationLabel.text, "Berlin")
-        XCTAssertEqual(view.countryCodeLabel.text, "DE")
+        XCTAssertEqual(view.locationLabel.text, "Berlin, DE")
         XCTAssertEqual(view.temperatureLabel.text, "24°C")
         XCTAssertEqual(view.conditionLabel.text, "Moderate rain")
         XCTAssertEqual(view.feelsLikeLabel.text, "Feels like 25°C")
         XCTAssertEqual(view.humidityTitleLabel.text, "Humidity")
         XCTAssertEqual(view.humidityValueLabel.text, "64%")
-        XCTAssertFalse(view.countryCodeLabel.isHidden)
         XCTAssertFalse(view.conditionLabel.isHidden)
     }
 
@@ -31,7 +29,7 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
             )
         )
 
-        XCTAssertTrue(view.countryCodeLabel.isHidden)
+        XCTAssertEqual(view.locationLabel.text, "Berlin")
         XCTAssertTrue(view.conditionLabel.isHidden)
     }
 
@@ -42,13 +40,11 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
         view.reset()
 
         XCTAssertNil(view.locationLabel.text)
-        XCTAssertNil(view.countryCodeLabel.text)
         XCTAssertNil(view.temperatureLabel.text)
         XCTAssertNil(view.conditionLabel.text)
         XCTAssertNil(view.feelsLikeLabel.text)
         XCTAssertEqual(view.humidityTitleLabel.text, "Humidity")
         XCTAssertNil(view.humidityValueLabel.text)
-        XCTAssertTrue(view.countryCodeLabel.isHidden)
         XCTAssertTrue(view.conditionLabel.isHidden)
     }
 
@@ -89,7 +85,6 @@ final class LocationWeatherSummaryViewTests: XCTestCase {
         let view = LocationWeatherSummaryView()
         let labels = [
             view.locationLabel,
-            view.countryCodeLabel,
             view.temperatureLabel,
             view.conditionLabel,
             view.feelsLikeLabel,
