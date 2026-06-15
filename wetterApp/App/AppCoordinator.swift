@@ -21,6 +21,9 @@ nonisolated final class AppCoordinator {
 
     private var locationsViewModel: LocationsViewModel?
 
+    @MainActor
+    private let locationWeatherPageViewController: LocationWeatherPageViewController
+
     // MARK: - Initialization
 
     @MainActor
@@ -40,6 +43,22 @@ nonisolated final class AppCoordinator {
         self.locationsStore = locationsStore
         self.locationSearchService = locationSearchService
         self.locationProviderFactory = locationProviderFactory
+
+        let weatherServiceCapture = weatherService
+        let locationProviderFactoryCapture = locationProviderFactory
+        
+        self.locationWeatherPageViewController = LocationWeatherPageViewController(makeWeatherViewController: { source in
+            let weatherViewModel = LocationWeatherViewModel(
+                weatherService: weatherServiceCapture
+            )
+            let weatherViewController = LocationWeatherViewController(
+                viewModel: weatherViewModel,
+                locationProvider: locationProviderFactoryCapture(),
+                source: source
+            )
+            weatherViewController.additionalSafeAreaInsets.bottom = 24
+            return weatherViewController
+        })
     }
 
     // MARK: - Public Methods
@@ -71,13 +90,14 @@ nonisolated final class AppCoordinator {
 
     @MainActor
     func sceneDidBecomeActive() {
-        guard activeWeatherViewController?.source == .current else {
+        guard activeWeatherViewController?.currentWeatherViewController?.source == .current else {
             return
         }
-        activeWeatherViewController?.requestCurrentLocationAfterActivation()
+        activeWeatherViewController?.currentWeatherViewController?.requestCurrentLocationAfterActivation()
     }
 
-    var activeWeatherViewController: LocationWeatherViewController? {
+    @MainActor
+    var activeWeatherViewController: LocationWeatherPageViewController? {
         splitViewController.activeWeatherViewController
     }
 
@@ -119,25 +139,19 @@ nonisolated final class AppCoordinator {
         }
     }
 
-    @MainActor
-    private func makeWeatherViewController(
-        source: WeatherLocationSource
-    ) -> LocationWeatherViewController {
-        let weatherViewModel = LocationWeatherViewModel(
-            weatherService: weatherService
-        )
-        let weatherViewController = LocationWeatherViewController(
-            viewModel: weatherViewModel,
-            locationProvider: locationProviderFactory(),
-            source: source
-        )
-        return weatherViewController
-    }
 
     @MainActor
     private func showWeather(source: WeatherLocationSource) {
+        let snapshot = locationsStore.loadSnapshot()
+        var sources: [WeatherLocationSource] = [.current]
+        sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+
+        locationWeatherPageViewController.update(
+            sources: sources,
+            selectedSource: source
+        )
         splitViewController.setWeatherViewController(
-            makeWeatherViewController(source: source)
+            locationWeatherPageViewController
         )
     }
 
@@ -156,6 +170,16 @@ nonisolated final class AppCoordinator {
             }
 
             locationsViewModel?.loadLocations()
+            
+            let snapshot = self.locationsStore.loadSnapshot()
+            var sources: [WeatherLocationSource] = [.current]
+            sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+            let currentSource = self.activeWeatherViewController?.currentWeatherViewController?.source ?? .current
+            self.locationWeatherPageViewController.update(
+                sources: sources,
+                selectedSource: currentSource
+            )
+            
             primaryNavigationController.popViewController(animated: true)
         }
         primaryNavigationController.pushViewController(
@@ -166,10 +190,19 @@ nonisolated final class AppCoordinator {
 
     @MainActor
     private func handleDeletedLocation(id: UUID) {
+        let snapshot = locationsStore.loadSnapshot()
+        var sources: [WeatherLocationSource] = [.current]
+        sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+
         guard
-            case let .saved(location) = activeWeatherViewController?.source,
+            case let .saved(location) = activeWeatherViewController?.currentWeatherViewController?.source,
             location.id == id
         else {
+            let currentSource = activeWeatherViewController?.currentWeatherViewController?.source ?? .current
+            locationWeatherPageViewController.update(
+                sources: sources,
+                selectedSource: currentSource
+            )
             return
         }
 
