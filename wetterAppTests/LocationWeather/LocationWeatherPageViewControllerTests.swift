@@ -21,6 +21,20 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
         XCTAssertEqual(sut.pageControl.numberOfPages, 2)
     }
 
+    func testUpdateBeforeViewLoadsPreservesSelectedPageControlIndex() {
+        let berlin = makeLocation(name: "Berlin")
+        let sut = makeSUT()
+
+        sut.update(
+            sources: [.current, .saved(berlin)],
+            selectedSource: .saved(berlin)
+        )
+        sut.loadViewIfNeeded()
+
+        XCTAssertEqual(sut.currentWeatherViewController?.source, .saved(berlin))
+        XCTAssertEqual(sut.pageControl.currentPage, 1)
+    }
+
     func testDataSourceReturnsPreviousAndNextSources() throws {
         let berlin = makeLocation(name: "Berlin")
         let hamburg = makeLocation(name: "Hamburg")
@@ -42,6 +56,31 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
 
         XCTAssertEqual(previous?.source, .current)
         XCTAssertEqual(next?.source, .saved(hamburg))
+    }
+
+    func testAddingSourceKeepsCurrentControllerAndMakesNextPageAvailable()
+        throws {
+        let berlin = makeLocation(name: "Berlin")
+        let sut = makeSUT()
+        sut.loadViewIfNeeded()
+        sut.update(
+            sources: [.current],
+            selectedSource: .current
+        )
+        let current = try XCTUnwrap(sut.currentWeatherViewController)
+
+        sut.update(
+            sources: [.current, .saved(berlin)],
+            selectedSource: .current
+        )
+
+        let next = sut.pageViewController(
+            sut.pageViewController,
+            viewControllerAfter: current
+        ) as? LocationWeatherViewController
+        XCTAssertTrue(sut.currentWeatherViewController === current)
+        XCTAssertEqual(next?.source, .saved(berlin))
+        XCTAssertTrue(sut.pageViewController.dataSource === sut)
     }
 
     func testDataSourceReturnsNilAtBoundaries() throws {
