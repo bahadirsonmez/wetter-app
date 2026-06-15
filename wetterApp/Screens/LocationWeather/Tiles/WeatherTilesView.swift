@@ -135,6 +135,8 @@ final class WeatherTilesView: UIView {
         from tiles: [WeatherTileViewData]
     ) -> [WeatherTileViewData] {
         let identifiers = Set(tiles.map(\.id))
+        // Keep the user's custom order stable across refreshes, but drop
+        // identifiers that are no longer present in the latest weather data.
         preferredOrder.removeAll { !identifiers.contains($0) }
 
         for identifier in tiles.map(\.id)
@@ -153,6 +155,8 @@ final class WeatherTilesView: UIView {
         toVisibleIndex destinationIndex: Int
     ) {
         let visibleCount = visibleTileViews.count
+        // Hidden overflow tiles cannot be reordered because they have no
+        // visible drop target and would make accessibility order ambiguous.
         guard
             let sourceIndex = tiles.firstIndex(where: { $0.id == identifier }),
             sourceIndex < visibleCount,
@@ -164,6 +168,7 @@ final class WeatherTilesView: UIView {
         }
 
         let tile = tiles.remove(at: sourceIndex)
+        // Removing the source shifts indexes when moving forward.
         let normalizedDestination = min(destinationIndex, tiles.count)
         tiles.insert(tile, at: normalizedDestination)
         preferredOrder = tiles.map(\.id)
@@ -351,6 +356,8 @@ extension WeatherTilesView: UIDragInteractionDelegate {
             object: identifier.rawValue as NSString
         )
         let dragItem = UIDragItem(itemProvider: itemProvider)
+        // localObject avoids decoding provider payloads for in-process
+        // reordering and lets us reject drags from outside this tiles view.
         dragItem.localObject = identifier
         draggedTileIdentifier = identifier
         draggedTileView = tileView

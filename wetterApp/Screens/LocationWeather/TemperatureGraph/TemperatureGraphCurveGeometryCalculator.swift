@@ -2,7 +2,11 @@ import CoreGraphics
 
 struct TemperatureGraphCurveGeometryCalculator {
 
+    // MARK: - Properties
+
     let pointRadius: CGFloat
+
+    // MARK: - Public Methods
 
     func makeGeometry(
         in bounds: CGRect,

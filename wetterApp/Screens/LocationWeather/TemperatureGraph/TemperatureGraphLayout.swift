@@ -2,6 +2,8 @@ import UIKit
 
 final class TemperatureGraphLayout: UICollectionViewLayout {
 
+    // MARK: - Properties
+
     private static let headerZIndex = 1_000
 
     override class var invalidationContextClass: AnyClass {
@@ -23,6 +25,8 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
     private var contentSize: CGSize = .zero
     private var needsGeometryRebuild = true
 
+    // MARK: - Initialization
+
     init(metrics: TemperatureGraphLayoutMetrics = .init()) {
         self.metrics = metrics
         super.init()
@@ -32,6 +36,8 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    // MARK: - Lifecycle
 
     override func prepare() {
         super.prepare()

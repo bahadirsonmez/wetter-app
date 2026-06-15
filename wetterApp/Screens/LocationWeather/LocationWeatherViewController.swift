@@ -1,10 +1,3 @@
-//
-//  LocationWeatherViewController.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 11.06.26.
-//
-
 import CoreLocation
 import UIKit
 import WeatherModel

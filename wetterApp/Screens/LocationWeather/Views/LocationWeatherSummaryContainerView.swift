@@ -1,10 +1,3 @@
-//
-//  LocationWeatherSummaryContainerView.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 13.06.2026.
-//
-
 import UIKit
 
 final class LocationWeatherSummaryContainerView: UIView {

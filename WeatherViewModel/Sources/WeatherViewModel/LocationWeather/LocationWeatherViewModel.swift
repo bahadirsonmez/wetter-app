@@ -35,6 +35,7 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
     // MARK: - Public Methods
 
+    /// Loads the weather and forecast for the specified coordinates.
     public func loadWeather(latitude: Double, longitude: Double) {
         lastCoordinates = WeatherCoordinates(
             latitude: latitude,
@@ -43,6 +44,7 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
         fetchWeather(latitude: latitude, longitude: longitude)
     }
 
+    /// Refreshes the weather and forecast using the last known coordinates, bypassing local cache.
     public func refresh() {
         guard let lastCoordinates else {
             return
@@ -85,6 +87,8 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
                     forecastRequest
                 )
 
+                // A newer request may have started while these async lets
+                // were in flight; stale results must not overwrite state.
                 guard !Task.isCancelled, let self else {
                     return
                 }
@@ -102,6 +106,8 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
             } catch is CancellationError {
                 return
             } catch {
+                // Cancellation is handled above. Other failures should only
+                // publish if this task still owns the latest request.
                 guard !Task.isCancelled, let self else {
                     return
                 }

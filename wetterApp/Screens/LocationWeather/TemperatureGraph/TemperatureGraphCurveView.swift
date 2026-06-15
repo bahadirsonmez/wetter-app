@@ -1,6 +1,7 @@
 import UIKit
 
 final class TemperatureGraphCurveView: UIView {
+    // MARK: - Properties
 
     private static let lineWidth: CGFloat = 2
     private static let pointRadius: CGFloat = 4
@@ -13,6 +14,8 @@ final class TemperatureGraphCurveView: UIView {
 
     private(set) var configuration: TemperatureGraphCurveConfiguration?
 
+    // MARK: - Initialization
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayers()
@@ -22,6 +25,8 @@ final class TemperatureGraphCurveView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    // MARK: - Lifecycle
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -34,6 +39,8 @@ final class TemperatureGraphCurveView: UIView {
             updateColors()
         }
     }
+
+    // MARK: - Public Methods
 
     func configure(
         currentTemperature: Double,

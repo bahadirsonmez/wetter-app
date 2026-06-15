@@ -2,6 +2,8 @@ import Foundation
 
 public final class WeatherService: WeatherFetching {
 
+    // MARK: - Properties
+
     private let apiKey: String
     private let session: URLSession
     private let baseURL: String
@@ -9,6 +11,9 @@ public final class WeatherService: WeatherFetching {
     private let cache = DataCache()
     private let cacheMaxAge: TimeInterval = 300 // 5 minutes
 
+    // MARK: - Initialization
+
+    /// Initializes a new weather service.
     public init(
         apiKey: String,
         session: URLSession = .shared,
@@ -19,6 +24,9 @@ public final class WeatherService: WeatherFetching {
         self.baseURL = baseURL
     }
 
+    // MARK: - Public Methods
+
+    /// Fetches the current weather conditions for a given coordinate.
     public func fetchCurrentWeather(
         latitude: Double,
         longitude: Double,
@@ -34,6 +42,7 @@ public final class WeatherService: WeatherFetching {
         )
     }
 
+    /// Fetches the hourly forecast for a given coordinate.
     public func fetchForecast(
         latitude: Double,
         longitude: Double,
@@ -48,6 +57,8 @@ public final class WeatherService: WeatherFetching {
             forceRefresh: forceRefresh
         )
     }
+
+    // MARK: - Private Methods
 
     private func performRequest<Response: Decodable>(
         path: String,
@@ -67,11 +78,13 @@ public final class WeatherService: WeatherFetching {
             do {
                 return try JSONDecoder().decode(Response.self, from: cachedData)
             } catch {
-                // Ignore decoding error from cache and fetch fresh
+                // Fallback to network fetch if cached response schema is stale or invalid.
             }
         }
 
         do {
+            // Pull-to-refresh must bypass both our in-memory cache and
+            // URLSession's protocol cache so the user sees fresh data.
             let cachePolicy: URLRequest.CachePolicy = forceRefresh
                 ? .reloadIgnoringLocalCacheData
                 : .useProtocolCachePolicy

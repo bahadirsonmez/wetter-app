@@ -1,3 +1,4 @@
+/// Represents the current weather conditions for a specific location.
 public struct CurrentWeather: Codable, Equatable, Sendable {
 
     public let coordinates: Coordinates
