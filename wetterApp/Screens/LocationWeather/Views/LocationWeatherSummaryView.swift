@@ -111,7 +111,7 @@ final class LocationWeatherSummaryView: UIView {
         } else {
             locationLabel.text = viewData.locationName
         }
-        
+
         temperatureLabel.text = viewData.temperatureText
         conditionLabel.text = viewData.conditionText
         feelsLikeLabel.text = viewData.feelsLikeText

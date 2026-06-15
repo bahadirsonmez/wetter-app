@@ -29,6 +29,14 @@ final class WeatherFetchingSpy: WeatherFetching, @unchecked Sendable {
         lock.withLock { forecastRequest.receivedLongitude }
     }
 
+    var receivedForceRefreshValues: [Bool] {
+        lock.withLock { currentRequest.receivedForceRefreshValues }
+    }
+
+    var forecastReceivedForceRefreshValues: [Bool] {
+        lock.withLock { forecastRequest.receivedForceRefreshValues }
+    }
+
     var cancellationCount: Int {
         lock.withLock { currentRequest.cancellationCount }
     }
@@ -97,22 +105,26 @@ final class WeatherFetchingSpy: WeatherFetching, @unchecked Sendable {
 
     func fetchCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> CurrentWeather {
         try await performRequest(
             latitude: latitude,
             longitude: longitude,
+            forceRefresh: forceRefresh,
             state: \.currentRequest
         )
     }
 
     func fetchForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> ForecastResponse {
         try await performRequest(
             latitude: latitude,
             longitude: longitude,
+            forceRefresh: forceRefresh,
             state: \.forecastRequest
         )
     }
@@ -157,6 +169,7 @@ private extension WeatherFetchingSpy {
         var callCount = 0
         var receivedLatitude: Double?
         var receivedLongitude: Double?
+        var receivedForceRefreshValues: [Bool] = []
         var cancellationCount = 0
         var result: Result<Response, Error>
         var shouldSuspend = false
@@ -171,6 +184,7 @@ private extension WeatherFetchingSpy {
     func performRequest<Response>(
         latitude: Double,
         longitude: Double,
+        forceRefresh: Bool,
         state keyPath: ReferenceWritableKeyPath<
             WeatherFetchingSpy,
             RequestState<Response>
@@ -180,6 +194,9 @@ private extension WeatherFetchingSpy {
             self[keyPath: keyPath].callCount += 1
             self[keyPath: keyPath].receivedLatitude = latitude
             self[keyPath: keyPath].receivedLongitude = longitude
+            self[keyPath: keyPath].receivedForceRefreshValues.append(
+                forceRefresh
+            )
             let state = self[keyPath: keyPath]
 
             return Invocation(

@@ -70,14 +70,16 @@ private final class SceneWeatherService:
 
     nonisolated func fetchCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> CurrentWeather {
         throw NetworkError.invalidResponse
     }
 
     nonisolated func fetchForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> ForecastResponse {
         throw NetworkError.invalidResponse
     }

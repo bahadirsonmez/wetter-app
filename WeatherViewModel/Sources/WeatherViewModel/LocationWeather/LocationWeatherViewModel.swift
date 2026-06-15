@@ -50,7 +50,8 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
         fetchWeather(
             latitude: lastCoordinates.latitude,
-            longitude: lastCoordinates.longitude
+            longitude: lastCoordinates.longitude,
+            forceRefresh: true
         )
     }
 
@@ -58,7 +59,11 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
 
     // Capture only the service during the request so the task does not retain
     // the ViewModel and prevent deinit from cancelling the active task.
-    private func fetchWeather(latitude: Double, longitude: Double) {
+    private func fetchWeather(
+        latitude: Double,
+        longitude: Double,
+        forceRefresh: Bool = false
+    ) {
         currentTask?.cancel()
         updateState(.loading)
 
@@ -67,11 +72,13 @@ public final class LocationWeatherViewModel: LocationWeatherViewModeling {
             do {
                 async let weatherRequest = service.fetchCurrentWeather(
                     latitude: latitude,
-                    longitude: longitude
+                    longitude: longitude,
+                    forceRefresh: forceRefresh
                 )
                 async let forecastRequest = service.fetchForecast(
                     latitude: latitude,
-                    longitude: longitude
+                    longitude: longitude,
+                    forceRefresh: forceRefresh
                 )
                 let (weather, forecast) = try await (
                     weatherRequest,

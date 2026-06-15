@@ -34,6 +34,11 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(service.forecastFetchCallCount, 1)
         XCTAssertEqual(service.forecastReceivedLatitude, 52.52)
         XCTAssertEqual(service.forecastReceivedLongitude, 13.405)
+        XCTAssertEqual(service.receivedForceRefreshValues, [false])
+        XCTAssertEqual(
+            service.forecastReceivedForceRefreshValues,
+            [false]
+        )
     }
 
     func testLoadWeatherSuccessSetsLoadedState() async {
@@ -127,6 +132,11 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertEqual(service.forecastFetchCallCount, 2)
         XCTAssertEqual(service.forecastReceivedLatitude, 52.52)
         XCTAssertEqual(service.forecastReceivedLongitude, 13.405)
+        XCTAssertEqual(service.receivedForceRefreshValues, [false, true])
+        XCTAssertEqual(
+            service.forecastReceivedForceRefreshValues,
+            [false, true]
+        )
     }
 
     func testRefreshWithoutPreviousCoordinatesDoesNotCallService() async {

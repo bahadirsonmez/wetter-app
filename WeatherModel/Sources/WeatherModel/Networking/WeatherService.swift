@@ -21,40 +21,49 @@ public final class WeatherService: WeatherFetching {
 
     public func fetchCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> CurrentWeather {
         try await performRequest(
             path: "/data/2.5/weather",
             queryItems: coordinateQueryItems(
                 latitude: latitude,
                 longitude: longitude
-            )
+            ),
+            forceRefresh: forceRefresh
         )
     }
 
     public func fetchForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> ForecastResponse {
         try await performRequest(
             path: "/data/2.5/forecast",
             queryItems: coordinateQueryItems(
                 latitude: latitude,
                 longitude: longitude
-            )
+            ),
+            forceRefresh: forceRefresh
         )
     }
 
     private func performRequest<Response: Decodable>(
         path: String,
-        queryItems: [URLQueryItem]
+        queryItems: [URLQueryItem],
+        forceRefresh: Bool
     ) async throws -> Response {
         guard let url = makeURL(path: path, queryItems: queryItems) else {
             throw NetworkError.invalidURL
         }
 
         let cacheKey = url.absoluteString
-        if let cachedData = await cache.get(for: cacheKey, maxAge: cacheMaxAge) {
+        if !forceRefresh,
+           let cachedData = await cache.get(
+               for: cacheKey,
+               maxAge: cacheMaxAge
+           ) {
             do {
                 return try JSONDecoder().decode(Response.self, from: cachedData)
             } catch {
@@ -63,7 +72,14 @@ public final class WeatherService: WeatherFetching {
         }
 
         do {
-            let (data, response) = try await session.data(from: url)
+            let cachePolicy: URLRequest.CachePolicy = forceRefresh
+                ? .reloadIgnoringLocalCacheData
+                : .useProtocolCachePolicy
+            let request = URLRequest(
+                url: url,
+                cachePolicy: cachePolicy
+            )
+            let (data, response) = try await session.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw NetworkError.invalidResponse
@@ -123,5 +139,3 @@ public final class WeatherService: WeatherFetching {
         return components.url
     }
 }
-
-
