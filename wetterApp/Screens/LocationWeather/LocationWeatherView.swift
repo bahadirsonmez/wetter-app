@@ -168,9 +168,15 @@ final class LocationWeatherView: UIView {
             loadingView.topAnchor.constraint(
                 equalTo: safeAreaLayoutGuide.topAnchor
             ),
-            loadingView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            loadingView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            loadingView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            loadingView.leadingAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.leadingAnchor
+            ),
+            loadingView.trailingAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.trailingAnchor
+            ),
+            loadingView.bottomAnchor.constraint(
+                equalTo: safeAreaLayoutGuide.bottomAnchor
+            )
         ] + placeholderHeightConstraints)
     }
 }

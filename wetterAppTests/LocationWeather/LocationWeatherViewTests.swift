@@ -166,6 +166,44 @@ final class LocationWeatherViewTests: XCTestCase {
         XCTAssertTrue(view.forecastContainerView.statusView.isHidden)
     }
 
+    func testLoadingViewFillsSafeAreaViewport() {
+        let view = LocationWeatherView()
+        let viewController = UIViewController()
+        viewController.view = view
+        viewController.additionalSafeAreaInsets = UIEdgeInsets(
+            top: 44,
+            left: 20,
+            bottom: 34,
+            right: 20
+        )
+        let window = UIWindow(
+            frame: CGRect(x: 0, y: 0, width: 800, height: 600)
+        )
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+        }
+
+        window.layoutIfNeeded()
+        view.layoutIfNeeded()
+
+        XCTAssertEqual(
+            view.loadingView.frame,
+            view.safeAreaLayoutGuide.layoutFrame
+        )
+        XCTAssertEqual(
+            view.loadingView.activityIndicator.center.x,
+            view.loadingView.bounds.midX,
+            accuracy: 0.5
+        )
+        XCTAssertEqual(
+            view.loadingView.activityIndicator.center.y,
+            view.loadingView.bounds.midY,
+            accuracy: 0.5
+        )
+    }
+
     func testForecastContainerContainsGraphAndLocalStatusViews() {
         let view = LocationWeatherView()
 
