@@ -1,3 +1,4 @@
+/// Represents a paginated or complete hourly forecast response for a location.
 public struct ForecastResponse: Codable, Equatable, Sendable {
 
     public let count: Int
