@@ -118,6 +118,47 @@ final class AppCoordinatorTests: XCTestCase {
         )
     }
 
+    func testSwipingToSavedLocationUpdatesLastViewedLocationID() throws {
+        let location = makeLocation(name: "Berlin")
+        let context = makeContext(
+            snapshot: SavedLocationsSnapshot(
+                locations: [location],
+                lastViewedLocationID: nil
+            )
+        )
+        context.coordinator.start()
+        let pageViewController = try XCTUnwrap(
+            context.coordinator.activeWeatherViewController
+        )
+
+        pageViewController.pageControl.currentPage = 1
+        pageViewController.pageControlChanged()
+
+        XCTAssertEqual(
+            context.store.snapshot.lastViewedLocationID,
+            location.id
+        )
+    }
+
+    func testSwipingToCurrentLocationClearsLastViewedLocationID() throws {
+        let location = makeLocation(name: "Berlin")
+        let context = makeContext(
+            snapshot: SavedLocationsSnapshot(
+                locations: [location],
+                lastViewedLocationID: location.id
+            )
+        )
+        context.coordinator.start()
+        let pageViewController = try XCTUnwrap(
+            context.coordinator.activeWeatherViewController
+        )
+
+        pageViewController.pageControl.currentPage = 0
+        pageViewController.pageControlChanged()
+
+        XCTAssertNil(context.store.snapshot.lastViewedLocationID)
+    }
+
     func testRepeatedSelectionDoesNotStackWeatherControllers() throws {
         let location = makeLocation(name: "Berlin")
         let context = makeContext(
@@ -383,14 +424,16 @@ private final class CoordinatorWeatherService:
 
     nonisolated func fetchCurrentWeather(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> CurrentWeather {
         throw NetworkError.invalidResponse
     }
 
     nonisolated func fetchForecast(
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        forceRefresh: Bool
     ) async throws -> ForecastResponse {
         throw NetworkError.invalidResponse
     }

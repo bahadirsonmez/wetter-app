@@ -104,7 +104,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertEqual(
             context.weatherView.summaryContainerView.summaryView.locationLabel.text,
-            "Berlin"
+            "Berlin, DE"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
         XCTAssertTrue(context.weatherView.loadingView.isHidden)
@@ -344,7 +344,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         XCTAssertEqual(
             context.weatherView.summaryContainerView.summaryView.locationLabel.text,
-            "Berlin"
+            "Berlin, DE"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
         XCTAssertTrue(context.weatherView.loadingView.isHidden)
@@ -368,7 +368,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertFalse(context.weatherView.refreshControl.isRefreshing)
         XCTAssertEqual(
             context.weatherView.summaryContainerView.summaryView.locationLabel.text,
-            "Hamburg"
+            "Hamburg, DE"
         )
     }
 
@@ -391,7 +391,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertFalse(context.weatherView.refreshControl.isRefreshing)
         XCTAssertEqual(
             context.weatherView.summaryContainerView.summaryView.locationLabel.text,
-            "Berlin"
+            "Berlin, DE"
         )
         XCTAssertFalse(context.weatherView.scrollView.isHidden)
         XCTAssertTrue(context.weatherView.summaryContainerView.statusView.isHidden)

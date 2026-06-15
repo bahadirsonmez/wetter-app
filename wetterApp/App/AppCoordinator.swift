@@ -46,19 +46,26 @@ nonisolated final class AppCoordinator {
 
         let weatherServiceCapture = weatherService
         let locationProviderFactoryCapture = locationProviderFactory
-        
-        self.locationWeatherPageViewController = LocationWeatherPageViewController(makeWeatherViewController: { source in
-            let weatherViewModel = LocationWeatherViewModel(
-                weatherService: weatherServiceCapture
+
+        self.locationWeatherPageViewController =
+            LocationWeatherPageViewController(
+                makeWeatherViewController: { source in
+                    let weatherViewModel = LocationWeatherViewModel(
+                        weatherService: weatherServiceCapture
+                    )
+                    let weatherViewController =
+                        LocationWeatherViewController(
+                            viewModel: weatherViewModel,
+                            locationProvider: locationProviderFactoryCapture(),
+                            source: source
+                        )
+                    weatherViewController.additionalSafeAreaInsets.bottom = 24
+                    return weatherViewController
+                }
             )
-            let weatherViewController = LocationWeatherViewController(
-                viewModel: weatherViewModel,
-                locationProvider: locationProviderFactoryCapture(),
-                source: source
-            )
-            weatherViewController.additionalSafeAreaInsets.bottom = 24
-            return weatherViewController
-        })
+        locationWeatherPageViewController.onSourceChange = { [weak self] in
+            self?.persistLastViewedSource($0)
+        }
     }
 
     // MARK: - Public Methods
@@ -138,8 +145,6 @@ nonisolated final class AppCoordinator {
             showWeather(source: .saved(location))
         }
     }
-
-
     @MainActor
     private func showWeather(source: WeatherLocationSource) {
         let snapshot = locationsStore.loadSnapshot()
@@ -170,16 +175,17 @@ nonisolated final class AppCoordinator {
             }
 
             locationsViewModel?.loadLocations()
-            
+
             let snapshot = self.locationsStore.loadSnapshot()
             var sources: [WeatherLocationSource] = [.current]
             sources.append(contentsOf: snapshot.locations.map { .saved($0) })
-            let currentSource = self.activeWeatherViewController?.currentWeatherViewController?.source ?? .current
+            let currentSource = self.activeWeatherViewController?
+                .currentWeatherViewController?.source ?? .current
             self.locationWeatherPageViewController.update(
                 sources: sources,
                 selectedSource: currentSource
             )
-            
+
             primaryNavigationController.popViewController(animated: true)
         }
         primaryNavigationController.pushViewController(
@@ -195,10 +201,12 @@ nonisolated final class AppCoordinator {
         sources.append(contentsOf: snapshot.locations.map { .saved($0) })
 
         guard
-            case let .saved(location) = activeWeatherViewController?.currentWeatherViewController?.source,
+            case let .saved(location) = activeWeatherViewController?
+                .currentWeatherViewController?.source,
             location.id == id
         else {
-            let currentSource = activeWeatherViewController?.currentWeatherViewController?.source ?? .current
+            let currentSource = activeWeatherViewController?
+                .currentWeatherViewController?.source ?? .current
             locationWeatherPageViewController.update(
                 sources: sources,
                 selectedSource: currentSource
@@ -207,5 +215,25 @@ nonisolated final class AppCoordinator {
         }
 
         showWeather(source: .current)
+    }
+
+    @MainActor
+    private func persistLastViewedSource(_ source: WeatherLocationSource) {
+        let snapshot = locationsStore.loadSnapshot()
+        let lastViewedLocationID: UUID?
+
+        switch source {
+        case .current:
+            lastViewedLocationID = nil
+        case let .saved(location):
+            lastViewedLocationID = location.id
+        }
+
+        try? locationsStore.saveSnapshot(
+            SavedLocationsSnapshot(
+                locations: snapshot.locations,
+                lastViewedLocationID: lastViewedLocationID
+            )
+        )
     }
 }
