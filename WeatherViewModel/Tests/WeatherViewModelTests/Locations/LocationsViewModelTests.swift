@@ -55,6 +55,19 @@ final class LocationsViewModelTests: XCTestCase {
         )
     }
 
+    func testDeleteSavedLocationPublishesDeletedIdentifier() {
+        let (viewModel, _) = makeSUT(
+            locations: [Fixtures.berlin]
+        )
+        var deletedLocationID: UUID?
+        viewModel.onLocationDeleted = { deletedLocationID = $0 }
+        viewModel.loadLocations()
+
+        viewModel.deleteLocation(id: Fixtures.berlin.id)
+
+        XCTAssertEqual(deletedLocationID, Fixtures.berlin.id)
+    }
+
     func testMoveLocationUsesSavedIndexes() throws {
         let (viewModel, store) = makeSUT(
             locations: [
@@ -114,6 +127,20 @@ final class LocationsViewModelTests: XCTestCase {
 
         XCTAssertEqual(receivedError, .persistenceFailed)
         XCTAssertEqual(viewModel.items, originalItems)
+    }
+
+    func testDeleteSaveFailureDoesNotPublishDeletedIdentifier() {
+        let (viewModel, store) = makeSUT(
+            locations: [Fixtures.berlin]
+        )
+        var deletedLocationID: UUID?
+        viewModel.onLocationDeleted = { deletedLocationID = $0 }
+        viewModel.loadLocations()
+        store.saveError = LocationsStoreError.encodingFailed
+
+        viewModel.deleteLocation(id: Fixtures.berlin.id)
+
+        XCTAssertNil(deletedLocationID)
     }
 }
 

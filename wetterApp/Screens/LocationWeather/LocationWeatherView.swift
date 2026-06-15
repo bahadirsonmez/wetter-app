@@ -14,7 +14,7 @@ final class LocationWeatherView: UIView {
     let loadingView = LocationWeatherLoadingView()
 
     private let contentView = UIView()
-    private var previousBoundsSize: CGSize = .zero
+    private var previousContentViewSize: CGSize = .zero
 
     // MARK: - Initialization
 
@@ -47,14 +47,14 @@ final class LocationWeatherView: UIView {
 
         super.layoutSubviews()
 
-        let currentBoundsSize = bounds.size
+        let currentContentViewSize = contentView.bounds.size
         defer {
-            previousBoundsSize = currentBoundsSize
+            previousContentViewSize = currentContentViewSize
         }
 
         guard
-            previousBoundsSize != .zero,
-            previousBoundsSize != currentBoundsSize
+            previousContentViewSize != .zero,
+            previousContentViewSize != currentContentViewSize
         else {
             return
         }
@@ -109,8 +109,8 @@ final class LocationWeatherView: UIView {
             scrollView.topAnchor.constraint(
                 equalTo: safeAreaLayoutGuide.topAnchor
             ),
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor),
             scrollView.bottomAnchor.constraint(
                 equalTo: safeAreaLayoutGuide.bottomAnchor
             ),
