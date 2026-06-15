@@ -41,7 +41,7 @@ final class SceneDelegateTests: XCTestCase {
         coordinator.start()
         let sceneDelegate = SceneDelegate()
         sceneDelegate.coordinator = coordinator
-        coordinator.activeWeatherViewController?.loadViewIfNeeded()
+        coordinator.activeWeatherViewController?.currentWeatherViewController?.loadViewIfNeeded()
 
         sceneDelegate.handleSceneDidBecomeActive()
         XCTAssertEqual(locationProvider.requestCallCount, 1)

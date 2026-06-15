@@ -17,7 +17,7 @@ final class AppCoordinatorTests: XCTestCase {
                 is LocationsViewController
         )
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .current
         )
         XCTAssertEqual(
@@ -38,7 +38,7 @@ final class AppCoordinatorTests: XCTestCase {
         context.coordinator.start()
 
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .saved(location)
         )
     }
@@ -54,7 +54,7 @@ final class AppCoordinatorTests: XCTestCase {
         context.coordinator.start()
 
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .current
         )
     }
@@ -69,7 +69,7 @@ final class AppCoordinatorTests: XCTestCase {
         )
         context.coordinator.start()
         let originalWeatherViewController =
-            context.coordinator.activeWeatherViewController
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController
         let locationsViewController = try locationsViewController(in: context)
 
         locationsViewController.tableView(
@@ -82,11 +82,11 @@ final class AppCoordinatorTests: XCTestCase {
             location.id
         )
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .saved(location)
         )
         XCTAssertFalse(
-            context.coordinator.activeWeatherViewController
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController
                 === originalWeatherViewController
         )
         XCTAssertEqual(
@@ -113,7 +113,7 @@ final class AppCoordinatorTests: XCTestCase {
 
         XCTAssertNil(context.store.snapshot.lastViewedLocationID)
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .current
         )
     }
@@ -138,13 +138,13 @@ final class AppCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(
             context.secondaryNavigationController.viewControllers
-                .filter { $0 is LocationWeatherViewController }
+                .filter { $0 is LocationWeatherPageViewController }
                 .count,
             1
         )
         XCTAssertFalse(
             context.primaryNavigationController.viewControllers
-                .contains { $0 is LocationWeatherViewController }
+                .contains { $0 is LocationWeatherPageViewController }
         )
     }
 
@@ -158,7 +158,7 @@ final class AppCoordinatorTests: XCTestCase {
         )
         context.coordinator.start()
 
-        context.coordinator.activeWeatherViewController?.loadViewIfNeeded()
+        context.coordinator.activeWeatherViewController?.currentWeatherViewController?.loadViewIfNeeded()
 
         XCTAssertEqual(context.locationProvider.requestCallCount, 0)
     }
@@ -200,6 +200,14 @@ final class AppCoordinatorTests: XCTestCase {
             locationsViewController.tableView.numberOfRows(inSection: 0),
             2
         )
+        XCTAssertEqual(
+            weatherViewController.sources.count,
+            2
+        )
+        XCTAssertEqual(
+            weatherViewController.sources.last,
+            .saved(location)
+        )
     }
 
     func testDeletingActiveSavedLocationShowsCurrentLocation() throws {
@@ -220,7 +228,7 @@ final class AppCoordinatorTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            context.coordinator.activeWeatherViewController?.source,
+            context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
             .current
         )
     }
@@ -249,13 +257,13 @@ final class AppCoordinatorTests: XCTestCase {
             context.coordinator.activeWeatherViewController
                 === weatherViewController
         )
-        XCTAssertEqual(weatherViewController.source, .saved(berlin))
+        XCTAssertEqual(weatherViewController.currentWeatherViewController?.source, .saved(berlin))
     }
 
     func testSceneActivationRefreshesOnlyCurrentLocationWeather() {
         let currentContext = makeContext()
         currentContext.coordinator.start()
-        currentContext.coordinator.activeWeatherViewController?
+        currentContext.coordinator.activeWeatherViewController?.currentWeatherViewController?
             .loadViewIfNeeded()
 
         currentContext.coordinator.sceneDidBecomeActive()
@@ -273,7 +281,7 @@ final class AppCoordinatorTests: XCTestCase {
             )
         )
         savedContext.coordinator.start()
-        savedContext.coordinator.activeWeatherViewController?
+        savedContext.coordinator.activeWeatherViewController?.currentWeatherViewController?
             .loadViewIfNeeded()
 
         savedContext.coordinator.sceneDidBecomeActive()
