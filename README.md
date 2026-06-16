@@ -44,11 +44,11 @@ The app shows weather for the current location and saved locations, including cu
 
 The project is split into three main layers:
 
-- `WeatherModel`: domain models, networking contracts, networking implementation, persistence contracts, and location search contracts.
-- `WeatherViewModel`: presentation models, formatting, mapping, and imperative ViewModels.
+- `WeatherModel`: domain models, networking contracts, networking implementation, persistence contracts, location search contracts, and platform-independent current-location contracts.
+- `WeatherViewModel`: presentation models, formatting, mapping, source routing, and imperative ViewModels.
 - `wetterApp`: UIKit screens, app composition, navigation, infrastructure implementations, and platform integrations.
 
-The UI layer depends on ViewModel protocols where practical. Domain and networking errors are mapped into presentation-level states before reaching view controllers.
+The UI layer depends on ViewModel protocols where practical. The location weather screen receives a ViewModel-owned source, while the ViewModel decides whether to request current location or load saved coordinates. Domain, location, and networking errors are mapped into presentation-level states before reaching view controllers.
 
 ## Project Structure
 
@@ -140,8 +140,9 @@ If the requested simulator is not installed, replace the destination with an ava
 
 - Storyboards were removed to keep the UI fully programmatic.
 - Model and ViewModel code live in local Swift packages to keep the core architecture independent from UIKit.
-- `WeatherFetching`, `LocationSearching`, and `LocationsStoring` are protocol-based so networking, search, and persistence can be tested without platform side effects.
-- ViewModels expose imperative callbacks instead of Combine or other reactive frameworks to keep the challenge implementation small and explicit.
+- `WeatherFetching`, `LocationSearching`, `LocationsStoring`, and `CurrentLocationProviding` are protocol-based so networking, search, persistence, and current-location flow can be tested without platform side effects.
+- ViewModels expose imperative callbacks instead of Combine or other reactive frameworks to keep the challenge implementation small and explicit. `LocationWeatherViewModel` owns current/saved source resolution so its controller only forwards lifecycle and user actions.
+- CoreLocation-specific code stays in `wetterApp/Infrastructure`; `LocationManaging` is only a thin test seam around `CLLocationManager`.
 - Weather tiles use manual frame calculation because the challenge explicitly disallows Auto Layout and `UIStackView` for that section.
 - The temperature graph uses a custom collection view layout so item positioning, sticky headers, and resize invalidation are controlled by app code.
 - `UserDefaults` is used for saved locations because the stored data is small, user-specific, and simple enough to keep as a single Codable snapshot.
