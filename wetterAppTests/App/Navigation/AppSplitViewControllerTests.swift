@@ -106,7 +106,30 @@ final class AppSplitViewControllerTests: XCTestCase {
             context.primaryNavigationController.viewControllers[2]
                 === weatherViewController
         )
-        XCTAssertTrue(
+        XCTAssertFalse(
+            context.secondaryNavigationController.viewControllers
+                .contains(weatherViewController)
+        )
+        XCTAssertEqual(
+            context.secondaryNavigationController.viewControllers.count,
+            1
+        )
+    }
+
+    func testCollapseKeepsSecondaryNavigationRootController() {
+        let context = makeContext()
+        let weatherViewController = makeWeatherViewController()
+        context.splitViewController.setWeatherViewController(
+            weatherViewController
+        )
+
+        _ = context.splitViewController.splitViewController(
+            context.splitViewController,
+            collapseSecondary: context.secondaryNavigationController,
+            onto: context.primaryNavigationController
+        )
+
+        XCTAssertFalse(
             context.secondaryNavigationController.viewControllers.isEmpty
         )
     }
