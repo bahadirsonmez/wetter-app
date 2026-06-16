@@ -1,4 +1,3 @@
-import WeatherModel
 import WeatherViewModel
 import XCTest
 @testable import wetterApp
