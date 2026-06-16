@@ -14,21 +14,12 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertTrue(context.viewController.view is LocationWeatherView)
     }
 
-    func testViewDidLoadRequestsCurrentLocation() {
+    func testViewDidLoadLoadsInitialWeather() {
         let context = makeContext()
 
         context.viewController.loadViewIfNeeded()
 
-        XCTAssertEqual(context.locationProvider.requestCallCount, 1)
-    }
-
-    func testViewDidLoadShowsLoadingWhileWaitingForCurrentLocation() {
-        let context = makeContext()
-
-        context.viewController.loadViewIfNeeded()
-
-        XCTAssertFalse(context.weatherView.loadingView.isHidden)
-        XCTAssertTrue(context.weatherView.scrollView.isHidden)
+        XCTAssertEqual(context.viewModel.loadInitialWeatherCallCount, 1)
     }
 
     func testActivationAfterReturningFromSettingsRequestsLocationAgain() {
@@ -37,58 +28,10 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         context.viewController.requestCurrentLocationAfterActivation()
 
-        XCTAssertEqual(context.locationProvider.requestCallCount, 2)
-    }
-
-    func testLocationSuccessLoadsWeatherForCoordinate() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-
-        context.locationProvider.send(
-            .success(
-                Coordinates(
-                    latitude: 52.52,
-                    longitude: 13.405
-                )
-            )
+        XCTAssertEqual(
+            context.viewModel.requestCurrentLocationAfterActivationCallCount,
+            1
         )
-
-        XCTAssertEqual(context.viewModel.receivedLatitude, 52.52)
-        XCTAssertEqual(context.viewModel.receivedLongitude, 13.405)
-    }
-
-    func testSavedLocationLoadsWeatherWithoutRequestingCurrentLocation() {
-        let route = LocationWeatherRoute(
-            id: UUID(),
-            name: "Berlin",
-            country: "DE",
-            latitude: 52.52,
-            longitude: 13.405
-        )
-        let context = makeContext(source: .saved(route))
-
-        context.viewController.loadViewIfNeeded()
-
-        XCTAssertEqual(context.viewModel.receivedLatitude, 52.52)
-        XCTAssertEqual(context.viewModel.receivedLongitude, 13.405)
-        XCTAssertEqual(context.locationProvider.requestCallCount, 0)
-        XCTAssertNil(context.locationProvider.onLocationResult)
-    }
-
-    func testSavedLocationDoesNotRequestLocationAfterActivation() {
-        let route = LocationWeatherRoute(
-            id: UUID(),
-            name: "Berlin",
-            country: "DE",
-            latitude: 52.52,
-            longitude: 13.405
-        )
-        let context = makeContext(source: .saved(route))
-        context.viewController.loadViewIfNeeded()
-
-        context.viewController.requestCurrentLocationAfterActivation()
-
-        XCTAssertEqual(context.locationProvider.requestCallCount, 0)
     }
 
     func testInitialLoadingShowsFullScreenLoadingView() {
@@ -267,6 +210,39 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertTrue(context.weatherView.forecastContainerView.isHidden)
     }
 
+    func testLocationPermissionFailureShowsOpenSettingsStatus() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewModel.send(.failed(.locationPermissionDenied))
+
+        XCTAssertEqual(
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
+            "Location Permission Required"
+        )
+        XCTAssertEqual(
+            context.weatherView.summaryContainerView.statusView.actionButton
+                .title(for: .normal),
+            "Open Settings"
+        )
+    }
+
+    func testLocationAccessRestrictedFailureShowsNoAction() {
+        let context = makeContext()
+        context.viewController.loadViewIfNeeded()
+
+        context.viewModel.send(.failed(.locationAccessRestricted))
+
+        XCTAssertEqual(
+            context.weatherView.summaryContainerView.statusView.titleLabel.text,
+            "Location Access Restricted"
+        )
+        XCTAssertTrue(
+            context.weatherView.summaryContainerView.statusView.actionButton
+                .isHidden
+        )
+    }
+
     func testInitialLoadingResetsWeatherTiles() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
@@ -307,7 +283,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         )
     }
 
-    func testWeatherRetryActionRefreshesViewModel() {
+    func testWeatherRetryActionLoadsInitialWeather() {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
         context.viewModel.send(.failed(.unavailable))
@@ -316,7 +292,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
             for: .touchUpInside
         )
 
-        XCTAssertEqual(context.viewModel.refreshCallCount, 1)
+        XCTAssertEqual(context.viewModel.loadInitialWeatherCallCount, 2)
     }
 
     func testPullToRefreshRefreshesViewModel() {
@@ -439,98 +415,19 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         XCTAssertFalse(weatherTileViews(in: context)[0].isHidden)
     }
 
-    func testLocationFailureHidesWeatherTiles() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-        context.viewModel.send(
-            .loaded(
-                LocationWeatherViewDataFixture.berlin(
-                    tiles: LocationWeatherViewDataFixture.tiles()
-                )
-            )
-        )
-
-        context.locationProvider.send(.failure(.authorizationDenied))
-
-        XCTAssertTrue(context.weatherView.tilesContainerView.isHidden)
-        XCTAssertTrue(
-            weatherTileViews(in: context).allSatisfy {
-                $0.titleLabel.text == nil && $0.isHidden
-            }
-        )
-    }
-
-    func testDeniedLocationShowsOpenSettingsStatus() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-
-        context.locationProvider.send(.failure(.authorizationDenied))
-
-        XCTAssertEqual(
-            context.weatherView.summaryContainerView.statusView.titleLabel.text,
-            "Location Permission Required"
-        )
-        XCTAssertEqual(
-            context.weatherView.summaryContainerView.statusView.actionButton.title(for: .normal),
-            "Open Settings"
-        )
-    }
-
-    func testRestrictedLocationShowsExplanationWithoutAction() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-
-        context.locationProvider.send(.failure(.authorizationRestricted))
-
-        XCTAssertEqual(
-            context.weatherView.summaryContainerView.statusView.titleLabel.text,
-            "Location Access Restricted"
-        )
-        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.actionButton.isHidden)
-    }
-
-    func testDisabledLocationServicesShowsExplanationWithoutAction() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-
-        context.locationProvider.send(.failure(.servicesDisabled))
-
-        XCTAssertEqual(
-            context.weatherView.summaryContainerView.statusView.titleLabel.text,
-            "Location Services Disabled"
-        )
-        XCTAssertTrue(context.weatherView.summaryContainerView.statusView.actionButton.isHidden)
-    }
-
-    func testUnavailableLocationRetryRequestsLocationAgain() {
-        let context = makeContext()
-        context.viewController.loadViewIfNeeded()
-        context.locationProvider.send(.failure(.locationUnavailable))
-
-        context.weatherView.summaryContainerView.statusView.actionButton.sendActions(
-            for: .touchUpInside
-        )
-
-        XCTAssertEqual(context.locationProvider.requestCallCount, 2)
-    }
-
     // MARK: - Helpers
 
     private func makeContext(
         source: LocationWeatherSource = .current
     ) -> TestContext {
-        let viewModel = LocationWeatherViewModelSpy()
-        let locationProvider = CurrentLocationProviderSpy()
+        let viewModel = LocationWeatherViewModelSpy(source: source)
         let viewController = LocationWeatherViewController(
-            viewModel: viewModel,
-            locationProvider: locationProvider,
-            source: source
+            viewModel: viewModel
         )
 
         return TestContext(
             viewController: viewController,
-            viewModel: viewModel,
-            locationProvider: locationProvider
+            viewModel: viewModel
         )
     }
 
@@ -548,7 +445,6 @@ private struct TestContext {
 
     let viewController: LocationWeatherViewController
     let viewModel: LocationWeatherViewModelSpy
-    let locationProvider: CurrentLocationProviderSpy
 
     var weatherView: LocationWeatherView {
         guard let weatherView = viewController.view as? LocationWeatherView else {

@@ -153,6 +153,116 @@ final class LocationWeatherViewModelTests: XCTestCase {
         XCTAssertTrue(receivedStates.isEmpty)
     }
 
+    func testLoadInitialWeatherForSavedSourceLoadsRouteCoordinates() async {
+        let route = LocationWeatherRoute(
+            id: UUID(),
+            name: "Berlin",
+            country: "DE",
+            latitude: 52.52,
+            longitude: 13.405
+        )
+        let (viewModel, service) = makeSUT(source: .saved(route))
+
+        viewModel.loadInitialWeather()
+        await waitUntilRequestCount(1, service: service)
+        await waitUntilForecastRequestCount(1, service: service)
+
+        XCTAssertEqual(service.receivedLatitude, 52.52)
+        XCTAssertEqual(service.receivedLongitude, 13.405)
+        XCTAssertEqual(service.forecastReceivedLatitude, 52.52)
+        XCTAssertEqual(service.forecastReceivedLongitude, 13.405)
+    }
+
+    func testLoadInitialWeatherForCurrentSourceRequestsCurrentLocation() {
+        let locationProvider = CurrentLocationProviderSpy()
+        let (viewModel, service) = makeSUT(
+            source: .current,
+            locationProvider: locationProvider
+        )
+
+        viewModel.loadInitialWeather()
+
+        XCTAssertEqual(locationProvider.requestCallCount, 1)
+        XCTAssertEqual(viewModel.state, .loading)
+        XCTAssertEqual(service.fetchCallCount, 0)
+    }
+
+    func testCurrentLocationSuccessLoadsWeatherForCoordinates() async {
+        let locationProvider = CurrentLocationProviderSpy()
+        let (viewModel, service) = makeSUT(
+            source: .current,
+            locationProvider: locationProvider
+        )
+
+        viewModel.loadInitialWeather()
+        locationProvider.send(
+            .success(
+                Coordinates(
+                    latitude: 52.52,
+                    longitude: 13.405
+                )
+            )
+        )
+        await waitUntilRequestCount(1, service: service)
+        await waitUntilForecastRequestCount(1, service: service)
+
+        XCTAssertEqual(service.receivedLatitude, 52.52)
+        XCTAssertEqual(service.receivedLongitude, 13.405)
+        XCTAssertEqual(service.forecastReceivedLatitude, 52.52)
+        XCTAssertEqual(service.forecastReceivedLongitude, 13.405)
+    }
+
+    func testCurrentLocationFailurePublishesFailedState() {
+        let locationProvider = CurrentLocationProviderSpy()
+        let (viewModel, _) = makeSUT(
+            source: .current,
+            locationProvider: locationProvider
+        )
+        var receivedStates: [LocationWeatherViewState] = []
+        viewModel.onStateChange = { receivedStates.append($0) }
+
+        viewModel.loadInitialWeather()
+        locationProvider.send(.failure(.authorizationDenied))
+
+        XCTAssertEqual(viewModel.state, .failed(.locationPermissionDenied))
+        XCTAssertEqual(
+            receivedStates,
+            [.loading, .failed(.locationPermissionDenied)]
+        )
+    }
+
+    func testRequestCurrentLocationAfterActivationRequestsOnlyForCurrentSource() {
+        let locationProvider = CurrentLocationProviderSpy()
+        let (viewModel, _) = makeSUT(
+            source: .current,
+            locationProvider: locationProvider
+        )
+
+        viewModel.requestCurrentLocationAfterActivation()
+
+        XCTAssertEqual(locationProvider.requestCallCount, 1)
+    }
+
+    func testRequestCurrentLocationAfterActivationDoesNothingForSavedSource() {
+        let route = LocationWeatherRoute(
+            id: UUID(),
+            name: "Berlin",
+            country: "DE",
+            latitude: 52.52,
+            longitude: 13.405
+        )
+        let locationProvider = CurrentLocationProviderSpy()
+        let (viewModel, service) = makeSUT(
+            source: .saved(route),
+            locationProvider: locationProvider
+        )
+
+        viewModel.requestCurrentLocationAfterActivation()
+
+        XCTAssertEqual(locationProvider.requestCallCount, 0)
+        XCTAssertEqual(service.fetchCallCount, 0)
+    }
+
     func testLoadWeatherWhenCalledAgainCancelsPreviousRequest() async {
         let (viewModel, service) = makeSUT(
             shouldSuspend: true
@@ -319,6 +429,8 @@ final class LocationWeatherViewModelTests: XCTestCase {
     }
 
     private func makeSUT(
+        source: LocationWeatherSource = .current,
+        locationProvider: (any CurrentLocationProviding)? = nil,
         result: Result<CurrentWeather, Error> = .success(
             WeatherViewModelFixtures.berlinWeather
         ),
@@ -340,7 +452,11 @@ final class LocationWeatherViewModelTests: XCTestCase {
         service.forecastIgnoresCancellation = forecastIgnoresCancellation
 
         return (
-            LocationWeatherViewModel(weatherService: service),
+            LocationWeatherViewModel(
+                source: source,
+                weatherService: service,
+                locationProvider: locationProvider
+            ),
             service
         )
     }

@@ -50,14 +50,20 @@ nonisolated final class AppCoordinator {
         self.locationWeatherPageViewController =
             LocationWeatherPageViewController(
                 makeWeatherViewController: { source in
+                    let locationProvider: (any CurrentLocationProviding)? = {
+                        guard source == .current else {
+                            return nil
+                        }
+                        return locationProviderFactoryCapture()
+                    }()
                     let weatherViewModel = LocationWeatherViewModel(
-                        weatherService: weatherServiceCapture
+                        source: source,
+                        weatherService: weatherServiceCapture,
+                        locationProvider: locationProvider
                     )
                     let weatherViewController =
                         LocationWeatherViewController(
-                            viewModel: weatherViewModel,
-                            locationProvider: locationProviderFactoryCapture(),
-                            source: source
+                            viewModel: weatherViewModel
                         )
                     weatherViewController.additionalSafeAreaInsets.bottom = 24
                     return weatherViewController

@@ -3,20 +3,28 @@ import WeatherViewModel
 @MainActor
 final class LocationWeatherViewModelSpy: LocationWeatherViewModeling {
 
+    let source: LocationWeatherSource
     private(set) var state: LocationWeatherViewState = .idle
     var onStateChange: ((LocationWeatherViewState) -> Void)?
 
-    private(set) var receivedLatitude: Double?
-    private(set) var receivedLongitude: Double?
+    private(set) var loadInitialWeatherCallCount = 0
     private(set) var refreshCallCount = 0
+    private(set) var requestCurrentLocationAfterActivationCallCount = 0
 
-    func loadWeather(latitude: Double, longitude: Double) {
-        receivedLatitude = latitude
-        receivedLongitude = longitude
+    init(source: LocationWeatherSource = .current) {
+        self.source = source
+    }
+
+    func loadInitialWeather() {
+        loadInitialWeatherCallCount += 1
     }
 
     func refresh() {
         refreshCallCount += 1
+    }
+
+    func requestCurrentLocationAfterActivation() {
+        requestCurrentLocationAfterActivationCallCount += 1
     }
 
     func send(_ state: LocationWeatherViewState) {

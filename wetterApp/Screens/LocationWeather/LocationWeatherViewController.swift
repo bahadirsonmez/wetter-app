@@ -1,6 +1,4 @@
-import CoreLocation
 import UIKit
-import WeatherModel
 import WeatherViewModel
 
 final class LocationWeatherViewController: UIViewController {
@@ -8,25 +6,19 @@ final class LocationWeatherViewController: UIViewController {
     // MARK: - Private Properties
 
     private let viewModel: any LocationWeatherViewModeling
-    let source: LocationWeatherSource
-    // The controller coordinates location input with weather loading, keeping
-    // the ViewModel independent from CoreLocation and focused on presentation.
-    private let locationProvider: any CurrentLocationProviding
     private let contentView = LocationWeatherView()
 
     private var hasLoadedWeather = false
     private var isRefreshing = false
 
+    var source: LocationWeatherSource {
+        viewModel.source
+    }
+
     // MARK: - Initialization
 
-    init(
-        viewModel: any LocationWeatherViewModeling,
-        locationProvider: any CurrentLocationProviding,
-        source: LocationWeatherSource
-    ) {
+    init(viewModel: any LocationWeatherViewModeling) {
         self.viewModel = viewModel
-        self.locationProvider = locationProvider
-        self.source = source
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -44,12 +36,9 @@ final class LocationWeatherViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         bindViewModel()
-        if source == .current {
-            bindLocationProvider()
-        }
         bindActions()
         render(viewModel.state)
-        loadInitialWeather()
+        viewModel.loadInitialWeather()
     }
 
     // MARK: - Binding
@@ -57,24 +46,6 @@ final class LocationWeatherViewController: UIViewController {
     private func bindViewModel() {
         viewModel.onStateChange = { [weak self] state in
             self?.render(state)
-        }
-    }
-
-    private func bindLocationProvider() {
-        locationProvider.onLocationResult = { [weak self] result in
-            guard let self else {
-                return
-            }
-
-            switch result {
-            case let .success(coordinate):
-                viewModel.loadWeather(
-                    latitude: coordinate.latitude,
-                    longitude: coordinate.longitude
-                )
-            case let .failure(error):
-                renderLocationError(error)
-            }
         }
     }
 
@@ -88,30 +59,8 @@ final class LocationWeatherViewController: UIViewController {
 
     // MARK: - Actions
 
-    private func loadInitialWeather() {
-        switch source {
-        case .current:
-            requestCurrentLocation()
-        case let .saved(location):
-            viewModel.loadWeather(
-                latitude: location.latitude,
-                longitude: location.longitude
-            )
-        }
-    }
-
-    private func requestCurrentLocation() {
-        guard source == .current else {
-            return
-        }
-        if !hasLoadedWeather, !isRefreshing {
-            showInitialLoading()
-        }
-        locationProvider.requestCurrentLocation()
-    }
-
     func requestCurrentLocationAfterActivation() {
-        requestCurrentLocation()
+        viewModel.requestCurrentLocationAfterActivation()
     }
 
     @objc
@@ -175,54 +124,6 @@ final class LocationWeatherViewController: UIViewController {
         }
     }
 
-    private func renderLocationError(_ error: CurrentLocationError) {
-        finishRefreshing()
-
-        switch error {
-        case .servicesDisabled:
-            showStatus(
-                title: "Location Services Disabled",
-                message: """
-                Turn on Location Services to see weather for your current \
-                location.
-                """,
-                actionTitle: nil,
-                onAction: nil
-            )
-
-        case .authorizationDenied:
-            showStatus(
-                title: "Location Permission Required",
-                message: """
-                Allow location access in Settings to see weather for your \
-                current location.
-                """,
-                actionTitle: "Open Settings",
-                onAction: { [weak self] in
-                    self?.openApplicationSettings()
-                }
-            )
-
-        case .authorizationRestricted:
-            showStatus(
-                title: "Location Access Restricted",
-                message: "Location access is restricted on this device.",
-                actionTitle: nil,
-                onAction: nil
-            )
-
-        case .locationUnavailable:
-            showStatus(
-                title: "Location Unavailable",
-                message: "Your current location could not be determined.",
-                actionTitle: "Retry",
-                onAction: { [weak self] in
-                    self?.requestCurrentLocation()
-                }
-            )
-        }
-    }
-
     // MARK: - Rendering Helpers
 
     private func showInitialLoading() {
@@ -245,11 +146,15 @@ final class LocationWeatherViewController: UIViewController {
 
     private func showWeatherError(_ error: LocationWeatherViewError) {
         showStatus(
-            title: "Weather Unavailable",
+            title: error.title,
             message: error.message,
-            actionTitle: "Retry",
+            actionTitle: error.actionTitle,
             onAction: { [weak self] in
-                self?.viewModel.refresh()
+                if error.opensApplicationSettings {
+                    self?.openApplicationSettings()
+                } else {
+                    self?.viewModel.loadInitialWeather()
+                }
             }
         )
     }
