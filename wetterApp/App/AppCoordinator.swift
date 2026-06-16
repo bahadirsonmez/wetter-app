@@ -124,7 +124,7 @@ nonisolated final class AppCoordinator {
             return
         }
 
-        showWeather(source: .saved(location))
+        showWeather(source: .saved(location.route))
     }
 
     @MainActor
@@ -142,14 +142,14 @@ nonisolated final class AppCoordinator {
                 showWeather(source: .current)
                 return
             }
-            showWeather(source: .saved(location))
+            showWeather(source: .saved(location.route))
         }
     }
     @MainActor
-    private func showWeather(source: WeatherLocationSource) {
+    private func showWeather(source: LocationWeatherSource) {
         let snapshot = locationsStore.loadSnapshot()
-        var sources: [WeatherLocationSource] = [.current]
-        sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+        var sources: [LocationWeatherSource] = [.current]
+        sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
 
         locationWeatherPageViewController.update(
             sources: sources,
@@ -177,8 +177,8 @@ nonisolated final class AppCoordinator {
             locationsViewModel?.loadLocations()
 
             let snapshot = self.locationsStore.loadSnapshot()
-            var sources: [WeatherLocationSource] = [.current]
-            sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+            var sources: [LocationWeatherSource] = [.current]
+            sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
             let currentSource = self.activeWeatherViewController?
                 .currentWeatherViewController?.source ?? .current
             self.locationWeatherPageViewController.update(
@@ -197,8 +197,8 @@ nonisolated final class AppCoordinator {
     @MainActor
     private func handleDeletedLocation(id: UUID) {
         let snapshot = locationsStore.loadSnapshot()
-        var sources: [WeatherLocationSource] = [.current]
-        sources.append(contentsOf: snapshot.locations.map { .saved($0) })
+        var sources: [LocationWeatherSource] = [.current]
+        sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
 
         guard
             case let .saved(location) = activeWeatherViewController?
@@ -218,7 +218,7 @@ nonisolated final class AppCoordinator {
     }
 
     @MainActor
-    private func persistLastViewedSource(_ source: WeatherLocationSource) {
+    private func persistLastViewedSource(_ source: LocationWeatherSource) {
         let snapshot = locationsStore.loadSnapshot()
         let lastViewedLocationID: UUID?
 
@@ -234,6 +234,19 @@ nonisolated final class AppCoordinator {
                 locations: snapshot.locations,
                 lastViewedLocationID: lastViewedLocationID
             )
+        )
+    }
+}
+
+private extension SavedLocation {
+
+    var route: LocationWeatherRoute {
+        LocationWeatherRoute(
+            id: id,
+            name: name,
+            country: countryCode ?? "",
+            latitude: latitude,
+            longitude: longitude
         )
     }
 }
