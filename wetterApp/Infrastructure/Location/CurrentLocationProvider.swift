@@ -1,4 +1,5 @@
 import CoreLocation
+import WeatherModel
 
 @MainActor
 final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
@@ -6,7 +7,7 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
     // MARK: - Public Properties
 
     var onLocationResult: (
-        (Result<CLLocationCoordinate2D, CurrentLocationError>) -> Void
+        (Result<Coordinates, CurrentLocationError>) -> Void
     )?
 
     // MARK: - Private Properties
@@ -41,7 +42,14 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
             return
         }
 
-        complete(with: .success(coordinate))
+        complete(
+            with: .success(
+                Coordinates(
+                    latitude: coordinate.latitude,
+                    longitude: coordinate.longitude
+                )
+            )
+        )
     }
 
     func handleLocationFailure(_ error: Error) {
@@ -93,7 +101,7 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
     }
 
     private func complete(
-        with result: Result<CLLocationCoordinate2D, CurrentLocationError>
+        with result: Result<Coordinates, CurrentLocationError>
     ) {
         guard isRequestPending else {
             return

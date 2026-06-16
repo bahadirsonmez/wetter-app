@@ -47,7 +47,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
 
         context.locationProvider.send(
             .success(
-                CLLocationCoordinate2D(
+                Coordinates(
                     latitude: 52.52,
                     longitude: 13.405
                 )
