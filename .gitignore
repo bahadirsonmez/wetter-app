@@ -6,7 +6,7 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
 
 # Volume root files
 .DocumentRevisions-V100
@@ -69,4 +69,4 @@ Package.resolved
 Secrets.xcconfig
 
 # Challenge materials
-docs/iOS Code Chellenge 2026.pdf
+docs/
