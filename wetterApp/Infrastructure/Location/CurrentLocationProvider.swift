@@ -13,9 +13,6 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
 
     private let locationManager: any LocationManaging
     private var isRequestPending = false
-    // Invalidates stale service-check completions so an older asynchronous
-    // result cannot complete or override the latest location request.
-    private var servicesCheckGeneration = 0
 
     // MARK: - Initialization
 
@@ -74,30 +71,8 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
         case .restricted:
             complete(with: .failure(.authorizationRestricted))
         case .authorizedAlways, .authorizedWhenInUse, .denied:
-            checkLocationServicesAvailability()
+            continueAuthorizedRequest()
         @unknown default:
-            checkLocationServicesAvailability()
-        }
-    }
-
-    private func checkLocationServicesAvailability() {
-        servicesCheckGeneration += 1
-        let generation = servicesCheckGeneration
-
-        locationManager.checkLocationServicesEnabled { [weak self] isEnabled in
-            guard
-                let self,
-                isRequestPending,
-                generation == servicesCheckGeneration
-            else {
-                return
-            }
-
-            guard isEnabled else {
-                complete(with: .failure(.servicesDisabled))
-                return
-            }
-
             continueAuthorizedRequest()
         }
     }
@@ -125,7 +100,6 @@ final class CurrentLocationProvider: NSObject, CurrentLocationProviding {
         }
 
         isRequestPending = false
-        servicesCheckGeneration += 1
         onLocationResult?(result)
     }
 }

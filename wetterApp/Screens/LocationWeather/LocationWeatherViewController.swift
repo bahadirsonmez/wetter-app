@@ -104,6 +104,9 @@ final class LocationWeatherViewController: UIViewController {
         guard source == .current else {
             return
         }
+        if !hasLoadedWeather, !isRefreshing {
+            showInitialLoading()
+        }
         locationProvider.requestCurrentLocation()
     }
 
