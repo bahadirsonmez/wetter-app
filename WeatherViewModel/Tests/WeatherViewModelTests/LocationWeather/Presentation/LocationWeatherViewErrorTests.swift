@@ -28,7 +28,7 @@ final class LocationWeatherViewErrorTests: XCTestCase {
             """
         )
         XCTAssertEqual(
-            LocationWeatherViewError.locationPermissionDenied.message,
+            LocationWeatherViewError.locationPermissionRequired.message,
             """
             Allow location access in Settings to see weather for your current \
             location.
@@ -51,7 +51,7 @@ final class LocationWeatherViewErrorTests: XCTestCase {
             "Location Services Disabled"
         )
         XCTAssertEqual(
-            LocationWeatherViewError.locationPermissionDenied.title,
+            LocationWeatherViewError.locationPermissionRequired.title,
             "Location Permission Required"
         )
         XCTAssertEqual(
@@ -67,15 +67,23 @@ final class LocationWeatherViewErrorTests: XCTestCase {
     func testActions() {
         XCTAssertEqual(LocationWeatherViewError.unavailable.actionTitle, "Retry")
         XCTAssertEqual(
-            LocationWeatherViewError.locationPermissionDenied.actionTitle,
+            LocationWeatherViewError.locationPermissionRequired.actionTitle,
             "Open Settings"
         )
         XCTAssertNil(LocationWeatherViewError.locationServicesDisabled.actionTitle)
         XCTAssertNil(LocationWeatherViewError.locationAccessRestricted.actionTitle)
-        XCTAssertTrue(
-            LocationWeatherViewError.locationPermissionDenied
-                .opensApplicationSettings
+        XCTAssertEqual(
+            LocationWeatherViewError.locationPermissionRequired.action,
+            .openSettings
         )
-        XCTAssertFalse(LocationWeatherViewError.unavailable.opensApplicationSettings)
+        XCTAssertEqual(
+            LocationWeatherViewError.locationUnavailable.action,
+            .retryCurrentLocation
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.unavailable.action,
+            .retryCurrentLocation
+        )
+        XCTAssertNil(LocationWeatherViewError.locationServicesDisabled.action)
     }
 }

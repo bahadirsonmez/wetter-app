@@ -7,7 +7,7 @@ extension LocationWeatherViewError {
         case .servicesDisabled:
             self = .locationServicesDisabled
         case .authorizationDenied:
-            self = .locationPermissionDenied
+            self = .locationPermissionRequired
         case .authorizationRestricted:
             self = .locationAccessRestricted
         case .locationUnavailable:

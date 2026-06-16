@@ -1,10 +1,15 @@
+public enum LocationWeatherErrorAction: Equatable, Sendable {
+    case openSettings
+    case retryCurrentLocation
+}
+
 public enum LocationWeatherViewError: Equatable, Sendable {
     case unauthorized
     case unavailable
     case invalidData
     case unknown
     case locationServicesDisabled
-    case locationPermissionDenied
+    case locationPermissionRequired
     case locationAccessRestricted
     case locationUnavailable
 
@@ -17,7 +22,7 @@ public enum LocationWeatherViewError: Equatable, Sendable {
             "Weather Unavailable"
         case .locationServicesDisabled:
             "Location Services Disabled"
-        case .locationPermissionDenied:
+        case .locationPermissionRequired:
             "Location Permission Required"
         case .locationAccessRestricted:
             "Location Access Restricted"
@@ -41,7 +46,7 @@ public enum LocationWeatherViewError: Equatable, Sendable {
             Turn on Location Services to see weather for your current \
             location.
             """
-        case .locationPermissionDenied:
+        case .locationPermissionRequired:
             """
             Allow location access in Settings to see weather for your current \
             location.
@@ -54,22 +59,29 @@ public enum LocationWeatherViewError: Equatable, Sendable {
     }
 
     public var actionTitle: String? {
-        switch self {
-        case .locationServicesDisabled,
-             .locationAccessRestricted:
-            nil
-        case .locationPermissionDenied:
+        switch action {
+        case .openSettings:
             "Open Settings"
+        case .retryCurrentLocation:
+            "Retry"
+        case nil:
+            nil
+        }
+    }
+
+    public var action: LocationWeatherErrorAction? {
+        switch self {
+        case .locationPermissionRequired:
+            .openSettings
         case .unauthorized,
              .unavailable,
              .invalidData,
              .unknown,
              .locationUnavailable:
-            "Retry"
+            .retryCurrentLocation
+        case .locationServicesDisabled,
+             .locationAccessRestricted:
+            nil
         }
-    }
-
-    public var opensApplicationSettings: Bool {
-        self == .locationPermissionDenied
     }
 }

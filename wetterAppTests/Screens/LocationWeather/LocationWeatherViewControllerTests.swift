@@ -214,7 +214,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
         let context = makeContext()
         context.viewController.loadViewIfNeeded()
 
-        context.viewModel.send(.failed(.locationPermissionDenied))
+        context.viewModel.send(.failed(.locationPermissionRequired))
 
         XCTAssertEqual(
             context.weatherView.summaryContainerView.statusView.titleLabel.text,
