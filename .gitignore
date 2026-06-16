@@ -67,3 +67,6 @@ Package.resolved
 
 # Local configuration
 Secrets.xcconfig
+
+# Challenge materials
+docs/iOS Code Chellenge 2026.pdf
