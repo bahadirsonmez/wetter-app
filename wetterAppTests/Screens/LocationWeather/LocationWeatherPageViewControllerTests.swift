@@ -200,9 +200,7 @@ private extension LocationWeatherPageViewControllerTests {
     func makeSUT() -> LocationWeatherPageViewController {
         LocationWeatherPageViewController { source in
             LocationWeatherViewController(
-                viewModel: LocationWeatherViewModelSpy(),
-                locationProvider: CurrentLocationProviderSpy(),
-                source: source
+                viewModel: LocationWeatherViewModelSpy(source: source)
             )
         }
     }

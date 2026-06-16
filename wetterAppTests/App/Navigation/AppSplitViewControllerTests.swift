@@ -249,9 +249,7 @@ private extension AppSplitViewControllerTests {
         LocationWeatherPageViewController(
             makeWeatherViewController: { source in
                 LocationWeatherViewController(
-                    viewModel: LocationWeatherViewModelSpy(),
-                    locationProvider: CurrentLocationProviderSpy(),
-                    source: source
+                    viewModel: LocationWeatherViewModelSpy(source: source)
                 )
             }
         )

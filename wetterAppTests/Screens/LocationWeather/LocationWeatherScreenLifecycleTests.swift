@@ -8,56 +8,29 @@ final class LocationWeatherScreenLifecycleTests: XCTestCase {
 
     func testViewControllerDeallocatesAfterRelease() {
         let viewModel = LocationWeatherViewModelSpy()
-        let locationProvider = CurrentLocationProviderSpy()
         weak var weakViewController: LocationWeatherViewController?
 
         autoreleasepool {
             var viewController: LocationWeatherViewController? =
                 LocationWeatherViewController(
-                    viewModel: viewModel,
-                    locationProvider: locationProvider,
-                    source: .current
+                    viewModel: viewModel
                 )
             viewController?.loadViewIfNeeded()
             weakViewController = viewController
             viewController = nil
         }
 
-        XCTAssertNil(weakViewController)
-    }
-
-    func testLocationProviderDoesNotRetainViewController() {
-        let viewModel = LocationWeatherViewModelSpy()
-        let locationProvider = CurrentLocationProviderSpy()
-        weak var weakViewController: LocationWeatherViewController?
-
-        autoreleasepool {
-            var viewController: LocationWeatherViewController? =
-                LocationWeatherViewController(
-                    viewModel: viewModel,
-                    locationProvider: locationProvider,
-                    source: .current
-                )
-            viewController?.loadViewIfNeeded()
-            weakViewController = viewController
-            viewController = nil
-        }
-
-        XCTAssertNotNil(locationProvider.onLocationResult)
         XCTAssertNil(weakViewController)
     }
 
     func testViewModelCallbackDoesNotRetainViewController() {
         let viewModel = LocationWeatherViewModelSpy()
-        let locationProvider = CurrentLocationProviderSpy()
         weak var weakViewController: LocationWeatherViewController?
 
         autoreleasepool {
             var viewController: LocationWeatherViewController? =
                 LocationWeatherViewController(
-                    viewModel: viewModel,
-                    locationProvider: locationProvider,
-                    source: .current
+                    viewModel: viewModel
                 )
             viewController?.loadViewIfNeeded()
             weakViewController = viewController

@@ -20,5 +20,62 @@ final class LocationWeatherViewErrorTests: XCTestCase {
             LocationWeatherViewError.unknown.message,
             "Something went wrong."
         )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationServicesDisabled.message,
+            """
+            Turn on Location Services to see weather for your current \
+            location.
+            """
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationPermissionDenied.message,
+            """
+            Allow location access in Settings to see weather for your current \
+            location.
+            """
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationAccessRestricted.message,
+            "Location access is restricted on this device."
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationUnavailable.message,
+            "Your current location could not be determined."
+        )
+    }
+
+    func testTitles() {
+        XCTAssertEqual(LocationWeatherViewError.unavailable.title, "Weather Unavailable")
+        XCTAssertEqual(
+            LocationWeatherViewError.locationServicesDisabled.title,
+            "Location Services Disabled"
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationPermissionDenied.title,
+            "Location Permission Required"
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationAccessRestricted.title,
+            "Location Access Restricted"
+        )
+        XCTAssertEqual(
+            LocationWeatherViewError.locationUnavailable.title,
+            "Location Unavailable"
+        )
+    }
+
+    func testActions() {
+        XCTAssertEqual(LocationWeatherViewError.unavailable.actionTitle, "Retry")
+        XCTAssertEqual(
+            LocationWeatherViewError.locationPermissionDenied.actionTitle,
+            "Open Settings"
+        )
+        XCTAssertNil(LocationWeatherViewError.locationServicesDisabled.actionTitle)
+        XCTAssertNil(LocationWeatherViewError.locationAccessRestricted.actionTitle)
+        XCTAssertTrue(
+            LocationWeatherViewError.locationPermissionDenied
+                .opensApplicationSettings
+        )
+        XCTAssertFalse(LocationWeatherViewError.unavailable.opensApplicationSettings)
     }
 }
