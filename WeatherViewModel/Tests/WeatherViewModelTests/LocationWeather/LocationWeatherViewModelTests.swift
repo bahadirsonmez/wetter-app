@@ -224,10 +224,10 @@ final class LocationWeatherViewModelTests: XCTestCase {
         viewModel.loadInitialWeather()
         locationProvider.send(.failure(.authorizationDenied))
 
-        XCTAssertEqual(viewModel.state, .failed(.locationPermissionDenied))
+        XCTAssertEqual(viewModel.state, .failed(.locationPermissionRequired))
         XCTAssertEqual(
             receivedStates,
-            [.loading, .failed(.locationPermissionDenied)]
+            [.loading, .failed(.locationPermissionRequired)]
         )
     }
 

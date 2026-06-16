@@ -150,10 +150,13 @@ final class LocationWeatherViewController: UIViewController {
             message: error.message,
             actionTitle: error.actionTitle,
             onAction: { [weak self] in
-                if error.opensApplicationSettings {
+                switch error.action {
+                case .openSettings:
                     self?.openApplicationSettings()
-                } else {
+                case .retryCurrentLocation:
                     self?.viewModel.loadInitialWeather()
+                case nil:
+                    break
                 }
             }
         )
