@@ -1,4 +1,3 @@
-import CoreLocation
 import WeatherModel
 import WeatherViewModel
 import XCTest
@@ -59,15 +58,14 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     }
 
     func testSavedLocationLoadsWeatherWithoutRequestingCurrentLocation() {
-        let location = SavedLocation(
+        let route = LocationWeatherRoute(
             id: UUID(),
             name: "Berlin",
-            state: "Berlin",
-            countryCode: "DE",
+            country: "DE",
             latitude: 52.52,
             longitude: 13.405
         )
-        let context = makeContext(source: .saved(location))
+        let context = makeContext(source: .saved(route))
 
         context.viewController.loadViewIfNeeded()
 
@@ -78,15 +76,14 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     }
 
     func testSavedLocationDoesNotRequestLocationAfterActivation() {
-        let location = SavedLocation(
+        let route = LocationWeatherRoute(
             id: UUID(),
             name: "Berlin",
-            state: nil,
-            countryCode: "DE",
+            country: "DE",
             latitude: 52.52,
             longitude: 13.405
         )
-        let context = makeContext(source: .saved(location))
+        let context = makeContext(source: .saved(route))
         context.viewController.loadViewIfNeeded()
 
         context.viewController.requestCurrentLocationAfterActivation()
@@ -520,7 +517,7 @@ final class LocationWeatherViewControllerTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeContext(
-        source: WeatherLocationSource = .current
+        source: LocationWeatherSource = .current
     ) -> TestContext {
         let viewModel = LocationWeatherViewModelSpy()
         let locationProvider = CurrentLocationProviderSpy()

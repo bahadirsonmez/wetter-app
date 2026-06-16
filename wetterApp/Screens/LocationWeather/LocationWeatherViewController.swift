@@ -8,7 +8,7 @@ final class LocationWeatherViewController: UIViewController {
     // MARK: - Private Properties
 
     private let viewModel: any LocationWeatherViewModeling
-    let source: WeatherLocationSource
+    let source: LocationWeatherSource
     // The controller coordinates location input with weather loading, keeping
     // the ViewModel independent from CoreLocation and focused on presentation.
     private let locationProvider: any CurrentLocationProviding
@@ -22,7 +22,7 @@ final class LocationWeatherViewController: UIViewController {
     init(
         viewModel: any LocationWeatherViewModeling,
         locationProvider: any CurrentLocationProviding,
-        source: WeatherLocationSource
+        source: LocationWeatherSource
     ) {
         self.viewModel = viewModel
         self.locationProvider = locationProvider

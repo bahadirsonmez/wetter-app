@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import WeatherModel
+import WeatherViewModel
 import XCTest
 @testable import wetterApp
 
@@ -39,7 +40,7 @@ final class AppCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(
             context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
-            .saved(location)
+            .saved(location.route)
         )
     }
 
@@ -83,7 +84,7 @@ final class AppCoordinatorTests: XCTestCase {
         )
         XCTAssertEqual(
             context.coordinator.activeWeatherViewController?.currentWeatherViewController?.source,
-            .saved(location)
+            .saved(location.route)
         )
         XCTAssertFalse(
             context.coordinator.activeWeatherViewController?.currentWeatherViewController
@@ -247,7 +248,7 @@ final class AppCoordinatorTests: XCTestCase {
         )
         XCTAssertEqual(
             weatherViewController.sources.last,
-            .saved(location)
+            .saved(location.route)
         )
     }
 
@@ -298,7 +299,10 @@ final class AppCoordinatorTests: XCTestCase {
             context.coordinator.activeWeatherViewController
                 === weatherViewController
         )
-        XCTAssertEqual(weatherViewController.currentWeatherViewController?.source, .saved(berlin))
+        XCTAssertEqual(
+            weatherViewController.currentWeatherViewController?.source,
+            .saved(berlin.route)
+        )
     }
 
     func testSceneActivationRefreshesOnlyCurrentLocationWeather() {
@@ -397,6 +401,19 @@ private extension AppCoordinatorTests {
             countryCode: "DE",
             latitude: 52.52,
             longitude: 13.405
+        )
+    }
+}
+
+private extension SavedLocation {
+
+    var route: LocationWeatherRoute {
+        LocationWeatherRoute(
+            id: id,
+            name: name,
+            country: countryCode ?? "",
+            latitude: latitude,
+            longitude: longitude
         )
     }
 }

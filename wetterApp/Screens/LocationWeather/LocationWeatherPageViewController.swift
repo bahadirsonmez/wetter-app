@@ -1,4 +1,5 @@
 import UIKit
+import WeatherViewModel
 
 final class LocationWeatherPageViewController: UIViewController {
 
@@ -6,17 +7,17 @@ final class LocationWeatherPageViewController: UIViewController {
 
     let pageViewController: UIPageViewController
     let pageControl: UIPageControl
-    private let makeWeatherViewController: (WeatherLocationSource) -> LocationWeatherViewController
+    private let makeWeatherViewController: (LocationWeatherSource) -> LocationWeatherViewController
 
     // MARK: - State
 
-    private(set) var sources: [WeatherLocationSource] = []
-    var onSourceChange: ((WeatherLocationSource) -> Void)?
+    private(set) var sources: [LocationWeatherSource] = []
+    var onSourceChange: ((LocationWeatherSource) -> Void)?
 
     // MARK: - Initialization
 
     init(
-        makeWeatherViewController: @escaping (WeatherLocationSource) -> LocationWeatherViewController
+        makeWeatherViewController: @escaping (LocationWeatherSource) -> LocationWeatherViewController
     ) {
         self.makeWeatherViewController = makeWeatherViewController
         self.pageViewController = UIPageViewController(
@@ -81,8 +82,8 @@ final class LocationWeatherPageViewController: UIViewController {
     // MARK: - Public API
 
     func update(
-        sources: [WeatherLocationSource],
-        selectedSource: WeatherLocationSource
+        sources: [LocationWeatherSource],
+        selectedSource: LocationWeatherSource
     ) {
         self.sources = sources
         pageControl.numberOfPages = sources.count

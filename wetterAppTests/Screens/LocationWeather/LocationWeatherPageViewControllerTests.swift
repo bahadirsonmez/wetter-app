@@ -1,5 +1,5 @@
 import UIKit
-import WeatherModel
+import WeatherViewModel
 import XCTest
 @testable import wetterApp
 
@@ -116,7 +116,7 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
     func testPageControlSelectionChangesSourceAndPublishesCallback() {
         let berlin = makeLocation(name: "Berlin")
         let sut = makeSUT()
-        var receivedSources: [WeatherLocationSource] = []
+        var receivedSources: [LocationWeatherSource] = []
         sut.onSourceChange = { receivedSources.append($0) }
         sut.update(
             sources: [.current, .saved(berlin)],
@@ -139,7 +139,7 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
     func testCompletedSwipeUpdatesPageControlAndPublishesSource() throws {
         let berlin = makeLocation(name: "Berlin")
         let sut = makeSUT()
-        var receivedSource: WeatherLocationSource?
+        var receivedSource: LocationWeatherSource?
         sut.onSourceChange = { receivedSource = $0 }
         sut.update(
             sources: [.current, .saved(berlin)],
@@ -172,7 +172,7 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
     func testCancelledSwipeDoesNotChangeSelectionOrPublishSource() throws {
         let berlin = makeLocation(name: "Berlin")
         let sut = makeSUT()
-        var receivedSources: [WeatherLocationSource] = []
+        var receivedSources: [LocationWeatherSource] = []
         sut.onSourceChange = { receivedSources.append($0) }
         sut.update(
             sources: [.current, .saved(berlin)],
@@ -207,12 +207,11 @@ private extension LocationWeatherPageViewControllerTests {
         }
     }
 
-    func makeLocation(name: String) -> SavedLocation {
-        SavedLocation(
+    func makeLocation(name: String) -> LocationWeatherRoute {
+        LocationWeatherRoute(
             id: UUID(),
             name: name,
-            state: nil,
-            countryCode: "DE",
+            country: "DE",
             latitude: 52.52,
             longitude: 13.405
         )
