@@ -411,7 +411,7 @@ private extension SavedLocation {
         LocationWeatherRoute(
             id: id,
             name: name,
-            country: countryCode ?? "",
+            country: countryCode,
             latitude: latitude,
             longitude: longitude
         )
