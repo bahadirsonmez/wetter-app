@@ -1,4 +1,5 @@
 import CoreLocation
+import WeatherModel
 import XCTest
 @testable import wetterApp
 
@@ -69,7 +70,7 @@ final class CurrentLocationProviderTests: XCTestCase {
             authorizationStatus: .authorizedWhenInUse
         )
         var receivedResult: Result<
-            CLLocationCoordinate2D,
+            Coordinates,
             CurrentLocationError
         >?
         provider.onLocationResult = { receivedResult = $0 }
@@ -142,7 +143,7 @@ final class CurrentLocationProviderTests: XCTestCase {
     func testDelegateResultWithoutPendingRequestIsIgnored() {
         let (provider, _) = makeSUT()
         var receivedResult: Result<
-            CLLocationCoordinate2D,
+            Coordinates,
             CurrentLocationError
         >?
         provider.onLocationResult = { receivedResult = $0 }
@@ -169,8 +170,8 @@ final class CurrentLocationProviderTests: XCTestCase {
     private func captureResult(
         from provider: CurrentLocationProvider,
         action: () -> Void
-    ) -> Result<CLLocationCoordinate2D, CurrentLocationError>? {
-        var result: Result<CLLocationCoordinate2D, CurrentLocationError>?
+    ) -> Result<Coordinates, CurrentLocationError>? {
+        var result: Result<Coordinates, CurrentLocationError>?
         provider.onLocationResult = { result = $0 }
         action()
         return result
@@ -178,10 +179,10 @@ final class CurrentLocationProviderTests: XCTestCase {
 }
 
 private extension Result
-where Success == CLLocationCoordinate2D,
+where Success == Coordinates,
       Failure == CurrentLocationError {
 
-    var coordinate: CLLocationCoordinate2D? {
+    var coordinate: Coordinates? {
         try? get()
     }
 

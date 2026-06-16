@@ -1,11 +1,11 @@
-import CoreLocation
+import WeatherModel
 @testable import wetterApp
 
 @MainActor
 final class CurrentLocationProviderSpy: CurrentLocationProviding {
 
     var onLocationResult: (
-        (Result<CLLocationCoordinate2D, CurrentLocationError>) -> Void
+        (Result<Coordinates, CurrentLocationError>) -> Void
     )?
 
     private(set) var requestCallCount = 0
@@ -15,7 +15,7 @@ final class CurrentLocationProviderSpy: CurrentLocationProviding {
     }
 
     func send(
-        _ result: Result<CLLocationCoordinate2D, CurrentLocationError>
+        _ result: Result<Coordinates, CurrentLocationError>
     ) {
         onLocationResult?(result)
     }
