@@ -151,6 +151,7 @@ nonisolated final class AppCoordinator {
             showWeather(source: .saved(location.route))
         }
     }
+
     @MainActor
     private func showWeather(source: LocationWeatherSource) {
         let snapshot = locationsStore.loadSnapshot()
@@ -250,7 +251,7 @@ private extension SavedLocation {
         LocationWeatherRoute(
             id: id,
             name: name,
-            country: countryCode ?? "",
+            country: countryCode,
             latitude: latitude,
             longitude: longitude
         )

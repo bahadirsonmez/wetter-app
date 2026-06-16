@@ -5,14 +5,14 @@ public struct LocationWeatherRoute: Equatable, Sendable {
 
     public let id: UUID
     public let name: String
-    public let country: String
+    public let country: String?
     public let latitude: Double
     public let longitude: Double
 
     public init(
         id: UUID,
         name: String,
-        country: String,
+        country: String?,
         latitude: Double,
         longitude: Double
     ) {
