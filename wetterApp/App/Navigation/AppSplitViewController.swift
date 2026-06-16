@@ -7,6 +7,8 @@ final class AppSplitViewController: UISplitViewController {
     let primaryNavigationController: UINavigationController
     let secondaryNavigationController: UINavigationController
 
+    private let secondaryPlaceholderViewController = UIViewController()
+
     var activeWeatherViewController: LocationWeatherPageViewController? {
         primaryNavigationController.viewControllers
             .compactMap { $0 as? LocationWeatherPageViewController }
@@ -52,7 +54,7 @@ final class AppSplitViewController: UISplitViewController {
 
         if isCollapsed {
             secondaryNavigationController.setViewControllers(
-                [],
+                [secondaryPlaceholderViewController],
                 animated: false
             )
             appendWeatherIfNeeded(weatherViewController)
@@ -78,6 +80,8 @@ final class AppSplitViewController: UISplitViewController {
         maximumPrimaryColumnWidth = 420
         primaryBackgroundStyle = .sidebar
         delegate = self
+        secondaryPlaceholderViewController.view.backgroundColor =
+            .systemBackground
 
         setViewController(
             primaryNavigationController,
@@ -112,7 +116,7 @@ final class AppSplitViewController: UISplitViewController {
         }
 
         secondaryNavigationController.setViewControllers(
-            [],
+            [secondaryPlaceholderViewController],
             animated: false
         )
         appendWeatherIfNeeded(weatherViewController)
