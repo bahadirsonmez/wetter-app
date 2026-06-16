@@ -155,11 +155,9 @@ nonisolated final class AppCoordinator {
     @MainActor
     private func showWeather(source: LocationWeatherSource) {
         let snapshot = locationsStore.loadSnapshot()
-        var sources: [LocationWeatherSource] = [.current]
-        sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
 
         locationWeatherPageViewController.update(
-            sources: sources,
+            sources: makeSources(from: snapshot),
             selectedSource: source
         )
         splitViewController.setWeatherViewController(
@@ -184,12 +182,10 @@ nonisolated final class AppCoordinator {
             locationsViewModel?.loadLocations()
 
             let snapshot = self.locationsStore.loadSnapshot()
-            var sources: [LocationWeatherSource] = [.current]
-            sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
             let currentSource = self.activeWeatherViewController?
                 .currentWeatherViewController?.source ?? .current
             self.locationWeatherPageViewController.update(
-                sources: sources,
+                sources: self.makeSources(from: snapshot),
                 selectedSource: currentSource
             )
 
@@ -204,8 +200,6 @@ nonisolated final class AppCoordinator {
     @MainActor
     private func handleDeletedLocation(id: UUID) {
         let snapshot = locationsStore.loadSnapshot()
-        var sources: [LocationWeatherSource] = [.current]
-        sources.append(contentsOf: snapshot.locations.map { .saved($0.route) })
 
         guard
             case let .saved(location) = activeWeatherViewController?
@@ -215,7 +209,7 @@ nonisolated final class AppCoordinator {
             let currentSource = activeWeatherViewController?
                 .currentWeatherViewController?.source ?? .current
             locationWeatherPageViewController.update(
-                sources: sources,
+                sources: makeSources(from: snapshot),
                 selectedSource: currentSource
             )
             return
@@ -242,6 +236,12 @@ nonisolated final class AppCoordinator {
                 lastViewedLocationID: lastViewedLocationID
             )
         )
+    }
+
+    private func makeSources(
+        from snapshot: SavedLocationsSnapshot
+    ) -> [LocationWeatherSource] {
+        [.current] + snapshot.locations.map { .saved($0.route) }
     }
 }
 
