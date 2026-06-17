@@ -9,7 +9,6 @@ public final class WeatherService: WeatherFetching {
     private let baseURL: String
 
     private let cache = DataCache()
-    private let cacheMaxAge: TimeInterval = 300 // 5 minutes
 
     // MARK: - Initialization
 
@@ -71,10 +70,7 @@ public final class WeatherService: WeatherFetching {
 
         let cacheKey = url.absoluteString
         if !forceRefresh,
-           let cachedData = await cache.get(
-               for: cacheKey,
-               maxAge: cacheMaxAge
-           ) {
+           let cachedData = await cache.get(for: cacheKey) {
             do {
                 return try JSONDecoder().decode(Response.self, from: cachedData)
             } catch {

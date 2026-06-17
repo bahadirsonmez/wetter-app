@@ -154,13 +154,13 @@ final class WeatherServiceTests: XCTestCase {
         let data = Data("test".utf8)
         await cache.set(data, for: "key")
 
-        let retrieved = await cache.get(for: "key", maxAge: 100)
+        let retrieved = await cache.get(for: "key")
         XCTAssertEqual(retrieved, data)
     }
 
     func testDataCacheExpiresData() async {
         var currentDate = Date(timeIntervalSince1970: 0)
-        let cache = DataCache(dateProvider: { currentDate })
+        let cache = DataCache(maxAge: 300, dateProvider: { currentDate })
         let data = Data("test".utf8)
 
         await cache.set(data, for: "key")
@@ -168,7 +168,7 @@ final class WeatherServiceTests: XCTestCase {
         // advance time by 6 minutes (360 seconds)
         currentDate = currentDate.addingTimeInterval(360)
 
-        let retrieved = await cache.get(for: "key", maxAge: 300)
+        let retrieved = await cache.get(for: "key")
         XCTAssertNil(retrieved)
     }
 
