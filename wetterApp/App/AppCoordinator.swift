@@ -238,6 +238,7 @@ nonisolated final class AppCoordinator {
         )
     }
 
+    @MainActor
     private func makeSources(
         from snapshot: SavedLocationsSnapshot
     ) -> [LocationWeatherSource] {
