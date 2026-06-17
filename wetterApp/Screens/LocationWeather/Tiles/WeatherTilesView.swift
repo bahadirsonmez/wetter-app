@@ -13,6 +13,7 @@ final class WeatherTilesView: UIView {
     private weak var draggedTileView: WeatherTileView?
 
     var onMinimumRequiredHeightChange: (() -> Void)?
+    var onDragStateChange: ((Bool) -> Void)?
 
     // MARK: - Initialization
 
@@ -328,6 +329,9 @@ private extension WeatherTilesView {
     }
 
     func restoreDraggedTileAppearance() {
+        if draggedTileIdentifier != nil {
+            onDragStateChange?(false)
+        }
         draggedTileView?.alpha = 1
         draggedTileView?.transform = .identity
         draggedTileView = nil
@@ -361,6 +365,7 @@ extension WeatherTilesView: UIDragInteractionDelegate {
         dragItem.localObject = identifier
         draggedTileIdentifier = identifier
         draggedTileView = tileView
+        onDragStateChange?(true)
         return [dragItem]
     }
 
