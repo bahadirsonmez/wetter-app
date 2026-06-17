@@ -7,9 +7,14 @@ actor DataCache {
     }
 
     private var entries: [String: Entry] = [:]
+    private let maxAge: TimeInterval
     private let dateProvider: () -> Date
 
-    init(dateProvider: @escaping () -> Date = Date.init) {
+    init(
+        maxAge: TimeInterval = 300,
+        dateProvider: @escaping () -> Date = Date.init
+    ) {
+        self.maxAge = maxAge
         self.dateProvider = dateProvider
     }
 
@@ -17,7 +22,7 @@ actor DataCache {
         entries[key] = Entry(data: data, timestamp: dateProvider())
     }
 
-    func get(for key: String, maxAge: TimeInterval) -> Data? {
+    func get(for key: String) -> Data? {
         guard let entry = entries[key] else { return nil }
         if dateProvider().timeIntervalSince(entry.timestamp) > maxAge {
             entries.removeValue(forKey: key)
