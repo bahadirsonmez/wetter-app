@@ -190,6 +190,24 @@ final class LocationWeatherPageViewControllerTests: XCTestCase {
         XCTAssertEqual(sut.pageControl.currentPage, 0)
         XCTAssertTrue(receivedSources.isEmpty)
     }
+
+    func testTileDragDisablesPageScrolling() throws {
+        let sut = makeSUT()
+        sut.loadViewIfNeeded()
+        sut.update(
+            sources: [.current],
+            selectedSource: .current
+        )
+        let scrollView = try XCTUnwrap(pageScrollView(in: sut))
+
+        sut.currentWeatherViewController?.onTileDragStateChange?(true)
+
+        XCTAssertFalse(scrollView.isScrollEnabled)
+
+        sut.currentWeatherViewController?.onTileDragStateChange?(false)
+
+        XCTAssertTrue(scrollView.isScrollEnabled)
+    }
 }
 
 // MARK: - Helpers
@@ -213,5 +231,13 @@ private extension LocationWeatherPageViewControllerTests {
             latitude: 52.52,
             longitude: 13.405
         )
+    }
+
+    func pageScrollView(
+        in viewController: LocationWeatherPageViewController
+    ) -> UIScrollView? {
+        viewController.pageViewController.view.subviews
+            .compactMap { $0 as? UIScrollView }
+            .first
     }
 }

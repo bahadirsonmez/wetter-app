@@ -11,6 +11,8 @@ final class LocationWeatherViewController: UIViewController {
     private var hasLoadedWeather = false
     private var isRefreshing = false
 
+    var onTileDragStateChange: ((Bool) -> Void)?
+
     var source: LocationWeatherSource {
         viewModel.source
     }
@@ -55,6 +57,10 @@ final class LocationWeatherViewController: UIViewController {
             action: #selector(handleRefresh),
             for: .valueChanged
         )
+        contentView.tilesContainerView.tilesView.onDragStateChange = {
+            [weak self] isDragging in
+            self?.onTileDragStateChange?(isDragging)
+        }
     }
 
     // MARK: - Actions
@@ -201,7 +207,7 @@ final class LocationWeatherViewController: UIViewController {
         isRefreshing = false
         contentView.refreshControl.endRefreshing()
     }
-    
+
     private func renderForecast(
         _ viewData: HourlyForecastViewData
     ) {

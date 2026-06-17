@@ -97,7 +97,7 @@ final class LocationWeatherPageViewController: UIViewController {
         }
 
         let direction: UIPageViewController.NavigationDirection = .forward
-        let targetVC = makeWeatherViewController(selectedSource)
+        let targetVC = makePage(for: selectedSource)
 
         pageViewController.setViewControllers(
             [targetVC],
@@ -137,7 +137,7 @@ final class LocationWeatherPageViewController: UIViewController {
         let currentIndex = sources.firstIndex(where: { $0 == currentSource }) ?? 0
 
         let direction: UIPageViewController.NavigationDirection = index > currentIndex ? .forward : .reverse
-        let targetVC = makeWeatherViewController(targetSource)
+        let targetVC = makePage(for: targetSource)
 
         pageViewController.setViewControllers(
             [targetVC],
@@ -146,6 +146,22 @@ final class LocationWeatherPageViewController: UIViewController {
             completion: nil
         )
         onSourceChange?(targetSource)
+    }
+
+    private func makePage(
+        for source: LocationWeatherSource
+    ) -> LocationWeatherViewController {
+        let viewController = makeWeatherViewController(source)
+        viewController.onTileDragStateChange = { [weak self] isDragging in
+            self?.setPageScrollingEnabled(!isDragging)
+        }
+        return viewController
+    }
+
+    private func setPageScrollingEnabled(_ isEnabled: Bool) {
+        pageViewController.view.subviews
+            .compactMap { $0 as? UIScrollView }
+            .forEach { $0.isScrollEnabled = isEnabled }
     }
 }
 
@@ -165,7 +181,7 @@ extension LocationWeatherPageViewController: UIPageViewControllerDataSource {
             return nil
         }
 
-        return makeWeatherViewController(sources[index - 1])
+        return makePage(for: sources[index - 1])
     }
 
     func pageViewController(
@@ -180,7 +196,7 @@ extension LocationWeatherPageViewController: UIPageViewControllerDataSource {
             return nil
         }
 
-        return makeWeatherViewController(sources[index + 1])
+        return makePage(for: sources[index + 1])
     }
 }
 
