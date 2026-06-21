@@ -39,6 +39,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
 
     // MARK: - Lifecycle
 
+    // Builds and caches layout attributes from the testable geometry output.
     override func prepare() {
         super.prepare()
 
@@ -100,6 +101,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         contentSize
     }
 
+    // Returns only visible cells and sticky headers for the requested rect.
     override func layoutAttributesForElements(
         in rect: CGRect
     ) -> [UICollectionViewLayoutAttributes]? {
@@ -117,6 +119,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         return Array(items) + Array(headers)
     }
 
+    // Returns the cached attributes for a single forecast cell.
     override func layoutAttributesForItem(
         at indexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {
@@ -124,6 +127,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         itemAttributes[indexPath]
     }
 
+    // Returns the sticky attributes for a section day header.
     override func layoutAttributesForSupplementaryView(
         ofKind elementKind: String,
         at indexPath: IndexPath
@@ -136,6 +140,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         return stickyHeaderAttributes(at: indexPath)
     }
 
+    // Invalidates on scroll and resize so sticky headers stay in sync.
     override func shouldInvalidateLayout(
         forBoundsChange newBounds: CGRect
     ) -> Bool {
@@ -148,6 +153,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         return collectionView.bounds != newBounds
     }
 
+    // Marks whether the bounds change needs full geometry or header-only work.
     override func invalidationContext(
         forBoundsChange newBounds: CGRect
     ) -> UICollectionViewLayoutInvalidationContext {
@@ -175,6 +181,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
         return context
     }
 
+    // Updates the geometry rebuild flag before UIKit runs the invalidation.
     override func invalidateLayout(
         with context: UICollectionViewLayoutInvalidationContext
     ) {
@@ -197,6 +204,7 @@ final class TemperatureGraphLayout: UICollectionViewLayout {
 
 private extension TemperatureGraphLayout {
 
+    // Clears cached attributes before rebuilding geometry.
     func reset() {
         itemAttributes.removeAll(keepingCapacity: true)
         headerAttributes.removeAll(keepingCapacity: true)
@@ -204,6 +212,7 @@ private extension TemperatureGraphLayout {
         needsGeometryRebuild = true
     }
 
+    // Copies cached header attributes and adjusts them for horizontal stickiness.
     func stickyHeaderAttributes(
         at indexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {

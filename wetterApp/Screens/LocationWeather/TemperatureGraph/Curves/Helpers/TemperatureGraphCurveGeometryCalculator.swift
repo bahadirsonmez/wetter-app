@@ -8,6 +8,12 @@ struct TemperatureGraphCurveGeometryCalculator {
 
     // MARK: - Public Methods
 
+    // Builds the drawable curve pieces for a single hourly cell.
+    //
+    // Each cell owns the dot at its center plus the left and right half-curves
+    // that connect it to neighboring cells. The input configuration contains
+    // nearby temperatures so this cell can compute the same cubic curve as its
+    // neighbors and avoid visible gaps at cell boundaries.
     func makeGeometry(
         in bounds: CGRect,
         configuration: TemperatureGraphCurveConfiguration
@@ -62,6 +68,10 @@ struct TemperatureGraphCurveGeometryCalculator {
 
 private extension TemperatureGraphCurveGeometryCalculator {
 
+    // Builds the half-curve entering the current dot from the previous hour.
+    //
+    // When there is no previous temperature this is the first visible point, so
+    // the line stays flat from the left edge into the current dot.
     func makeLeftSegment(
         bounds: CGRect,
         width: CGFloat,
@@ -80,6 +90,9 @@ private extension TemperatureGraphCurveGeometryCalculator {
             )
         }
 
+        // Build the cubic between previous -> current, then keep only the
+        // right half because this cell starts at the midpoint between the two
+        // hourly dots and ends at the current dot.
         let controlPoints = catmullRomControlPoints(
             beforeA: configuration.previous2Temperature,
             pointA: previousTemperature,
@@ -108,6 +121,10 @@ private extension TemperatureGraphCurveGeometryCalculator {
         )
     }
 
+    // Builds the half-curve leaving the current dot toward the next hour.
+    //
+    // When there is no next temperature this is the last visible point, so the
+    // line stays flat from the current dot to the right edge.
     func makeRightSegment(
         bounds: CGRect,
         width: CGFloat,
@@ -126,6 +143,9 @@ private extension TemperatureGraphCurveGeometryCalculator {
             )
         }
 
+        // Build the cubic between current -> next, then keep only the left
+        // half because this cell starts at the current dot and ends at the
+        // midpoint between the two hourly dots.
         let controlPoints = catmullRomControlPoints(
             beforeA: configuration.previousTemperature,
             pointA: currentTemperature,
@@ -159,7 +179,12 @@ private extension TemperatureGraphCurveGeometryCalculator {
 
 private extension TemperatureGraphCurveGeometryCalculator {
 
-    // Catmull-Rom tangents give adjacent cells matching direction at shared boundaries.
+    // Converts two neighboring temperature points into cubic Bezier controls.
+    //
+    // Catmull-Rom estimates the tangent from the surrounding points. That keeps
+    // adjacent cells pointing in the same direction at shared boundaries. If an
+    // outer neighbor is missing, the tangent falls back to the local slope so
+    // the first and last graph segments still look natural.
     func catmullRomControlPoints(
         beforeA: Double?,
         pointA: Double,
@@ -175,7 +200,11 @@ private extension TemperatureGraphCurveGeometryCalculator {
         )
     }
 
-    // De Casteljau splitting lets each cell draw half of the same cubic without seams.
+    // Splits a cubic Bezier curve exactly in half using De Casteljau.
+    //
+    // The graph is drawn by separate collection view cells. Splitting the same
+    // cubic lets the left cell draw one half and the right cell draw the other
+    // half, with the same midpoint and tangent at the boundary.
     func splitBezier(
         p0: Double,
         p1: Double,
@@ -200,6 +229,11 @@ private extension TemperatureGraphCurveGeometryCalculator {
         )
     }
 
+    // Maps a temperature into a y-position inside the cell bounds.
+    //
+    // Higher temperatures are drawn closer to the top. Equal min/max values are
+    // centered to avoid division by zero, and the result is clamped so unusual
+    // input cannot place the dot outside the visible cell.
     func yPosition(
         for temperature: Double,
         in bounds: CGRect,
