@@ -8,21 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		2A5FBA012FD9F00100A40AFB /* WeatherViewModel in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5FBA022FD9F00100A40AFB /* WeatherViewModel */; };
+		2A5FBA202FD9F00100A40AFB /* WeatherModel in Frameworks */ = {isa = PBXBuildFile; productRef = 2A5FBA212FD9F00100A40AFB /* WeatherModel */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E53566D32FD6B93300A40AFB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E53566DA2FD6B93300A40AFB;
+			remoteInfo = wetterApp;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		E53566DB2FD6B93300A40AFB /* wetterApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = wetterApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2A5FBA112FD9F00100A40AFB /* wetterAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = wetterAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2A5FBA232FD9F00100A40AFB /* wetterApp/Config/App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = wetterApp/Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
+		E53566DB2FD6B93300A40AFB /* wetterApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = wetterApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		E53566ED2FD6B93400A40AFB /* Exceptions for "wetterApp" folder in "wetterApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Extensions/.gitkeep,
+				Config/App.xcconfig,
+				Config/Secrets.xcconfig.example,
 				Info.plist,
-				Utils/.gitkeep,
-				Views/.gitkeep,
 			);
 			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
 		};
@@ -56,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A5FBA202FD9F00100A40AFB /* WeatherModel in Frameworks */,
 				2A5FBA012FD9F00100A40AFB /* WeatherViewModel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -69,6 +81,7 @@
 				E53566DD2FD6B93300A40AFB /* wetterApp */,
 				2A5FBA122FD9F00100A40AFB /* wetterAppTests */,
 				E53566DC2FD6B93300A40AFB /* Products */,
+				E57BA67D2FDC3D58001A9243 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -79,6 +92,14 @@
 				2A5FBA112FD9F00100A40AFB /* wetterAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E57BA67D2FDC3D58001A9243 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				2A5FBA232FD9F00100A40AFB /* wetterApp/Config/App.xcconfig */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,6 +145,7 @@
 			);
 			name = wetterApp;
 			packageProductDependencies = (
+				2A5FBA212FD9F00100A40AFB /* WeatherModel */,
 				2A5FBA022FD9F00100A40AFB /* WeatherViewModel */,
 			);
 			productName = wetterApp;
@@ -138,7 +160,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					2A5FBA102FD9F00100A40AFB = {
 						CreatedOnToolsVersion = 26.2;
@@ -159,6 +181,7 @@
 			mainGroup = E53566D22FD6B93300A40AFB;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				2A5FBA222FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherModel" */,
 				2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -205,6 +228,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2A5FBA172FD9F00100A40AFB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
+			targetProxy = 2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2A5FBA182FD9F00100A40AFB /* Debug */ = {
@@ -255,6 +286,7 @@
 		};
 		E53566EF2FD6B93400A40AFB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2A5FBA232FD9F00100A40AFB /* wetterApp/Config/App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -292,6 +324,7 @@
 		};
 		E53566F02FD6B93400A40AFB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2A5FBA232FD9F00100A40AFB /* wetterApp/Config/App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -386,6 +419,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -443,6 +477,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -480,28 +515,14 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin PBXContainerItemProxy section */
-		2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E53566D32FD6B93300A40AFB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = E53566DA2FD6B93300A40AFB;
-			remoteInfo = wetterApp;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		2A5FBA172FD9F00100A40AFB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = E53566DA2FD6B93300A40AFB /* wetterApp */;
-			targetProxy = 2A5FBA162FD9F00100A40AFB /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCLocalSwiftPackageReference section */
 		2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = WeatherViewModel;
+		};
+		2A5FBA222FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherModel" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = WeatherModel;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -510,6 +531,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2A5FBA032FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherViewModel" */;
 			productName = WeatherViewModel;
+		};
+		2A5FBA212FD9F00100A40AFB /* WeatherModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2A5FBA222FD9F00100A40AFB /* XCLocalSwiftPackageReference "WeatherModel" */;
+			productName = WeatherModel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

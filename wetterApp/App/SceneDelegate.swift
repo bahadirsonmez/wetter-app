@@ -1,15 +1,12 @@
-//
-//  SceneDelegate.swift
-//  wetterApp
-//
-//  Created by Bahadir Sonmez on 08.06.26.
-//
-
 import UIKit
+import WeatherModel
+import WeatherViewModel
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    var coordinator: AppCoordinator?
+    private var hasBecomeActive = false
 
     func scene(
         _ scene: UIScene,
@@ -21,38 +18,51 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
 
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = LocationWeatherViewController()
+        let splitViewController = makeRootViewController()
+        window.rootViewController = splitViewController
+
+        do {
+            let configuration = try AppConfiguration()
+            let coordinator = AppCoordinator(
+                splitViewController: splitViewController,
+                primaryNavigationController:
+                    splitViewController.primaryNavigationController,
+                secondaryNavigationController:
+                    splitViewController.secondaryNavigationController,
+                weatherService: WeatherService(
+                    apiKey: configuration.openWeatherAPIKey
+                ),
+                locationsStore: UserDefaultsLocationsStore(),
+                locationSearchService: MapKitLocationSearchService(),
+                locationProviderFactory: { CurrentLocationProvider() }
+            )
+            coordinator.start()
+            self.coordinator = coordinator
+        } catch {
+            assertionFailure("App configuration failed: \(error)")
+        }
+
         window.makeKeyAndVisible()
         self.window = window
     }
 
-    func sceneDidDisconnect(_ scene: UIScene) {
-        // Called as the scene is being released by the system.
-        // This occurs shortly after the scene enters the background, or when its session is discarded.
-        // Release any resources associated with this scene that can be re-created the next time the scene connects.
-        // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
-    }
-
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        handleSceneDidBecomeActive()
     }
 
-    func sceneWillResignActive(_ scene: UIScene) {
-        // Called when the scene will move from an active state to an inactive state.
-        // This may occur due to temporary interruptions (ex. an incoming phone call).
+    func handleSceneDidBecomeActive() {
+        guard hasBecomeActive else {
+            hasBecomeActive = true
+            return
+        }
+
+        coordinator?.sceneDidBecomeActive()
     }
 
-    func sceneWillEnterForeground(_ scene: UIScene) {
-        // Called as the scene transitions from the background to the foreground.
-        // Use this method to undo the changes made on entering the background.
+    func makeRootViewController() -> AppSplitViewController {
+        AppSplitViewController(
+            primaryNavigationController: UINavigationController(),
+            secondaryNavigationController: UINavigationController()
+        )
     }
-
-    func sceneDidEnterBackground(_ scene: UIScene) {
-        // Called as the scene transitions from the foreground to the background.
-        // Use this method to save data, release shared resources, and store enough scene-specific state information
-        // to restore the scene back to its current state.
-    }
-
-
 }
